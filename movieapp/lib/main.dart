@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'screens/main_navigation_screen.dart';
 import 'theme/app_theme.dart';
+import 'theme/theme_controller.dart';
 
 /// Ponto inicial da aplicação.
 ///
-/// Antes de iniciar o aplicativo, o arquivo `.env` é carregado.
-/// Esse arquivo contém informações privadas, como a chave da OMDb API,
-/// e não será enviado para o GitHub.
+/// Antes de iniciar a interface, carrega o arquivo `.env`,
+/// onde está armazenada a chave da OMDb API.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -18,56 +19,27 @@ Future<void> main() async {
 
 /// Widget principal do MovieApp.
 ///
-/// Responsável por configurar:
-/// - nome do aplicativo;
-/// - tema claro;
-/// - tema escuro;
-/// - tema utilizado pelo sistema;
-/// - primeira tela exibida.
+/// Define os temas claro e escuro e acompanha
+/// as alterações feitas pelo [ThemeController].
 class MovieApp extends StatelessWidget {
   const MovieApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MovieApp',
-      debugShowCheckedModeBanner: false,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeController,
+      builder: (context, themeMode, child) {
+        return MaterialApp(
+          title: 'MovieApp',
+          debugShowCheckedModeBanner: false,
 
-      // Temas definidos no arquivo app_theme.dart.
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeMode,
 
-      // Por enquanto, o aplicativo acompanha o tema do dispositivo.
-      // Posteriormente será possível alterar o tema dentro do próprio app.
-      themeMode: ThemeMode.system,
-
-      home: const HomeTestScreen(),
-    );
-  }
-}
-
-/// Tela temporária utilizada para verificar se a aplicação
-/// e os temas foram configurados corretamente.
-///
-/// Esta tela será substituída posteriormente pela tela de pesquisa.
-class HomeTestScreen extends StatelessWidget {
-  const HomeTestScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('MovieApp'),
-      ),
-      body: const Center(
-        child: Text(
-          'MovieApp funcionando!',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+          home: const MainNavigationScreen(),
+        );
+      },
     );
   }
 }

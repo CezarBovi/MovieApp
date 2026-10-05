@@ -3,16 +3,16 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:movieapp/main.dart';
 
-/// Teste básico para verificar se o aplicativo inicia corretamente.
+/// Verifica se a estrutura principal do MovieApp é carregada.
 void main() {
-  testWidgets('MovieApp inicia corretamente', (WidgetTester tester) async {
-    // Inicializa o widget principal do aplicativo.
-    await tester.pumpWidget(const MovieApp());
+  testWidgets(
+    'MovieApp inicia na tela de pesquisa',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(const MovieApp());
 
-    // Verifica se o texto da tela inicial está sendo exibido.
-    expect(find.text('MovieApp funcionando!'), findsOneWidget);
-
-    // Confirma que a aplicação possui uma estrutura Scaffold.
-    expect(find.byType(Scaffold), findsOneWidget);
-  });
+      expect(find.text('Busca cinematográfica'), findsOneWidget);
+      expect(find.text('Pesquisar'), findsWidgets);
+      expect(find.byType(NavigationBar), findsOneWidget);
+    },
+  );
 }
