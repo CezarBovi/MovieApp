@@ -1,3 +1,5 @@
+import 'results_screen.dart';
+
 import 'package:flutter/material.dart';
 
 import '../widgets/app_header.dart';
@@ -22,29 +24,35 @@ class _SearchScreenState extends State<SearchScreen> {
   ///
   /// Nesta etapa apenas informa o texto pesquisado.
   /// Posteriormente será feita uma requisição à OMDb.
-  void _searchMovie() {
-    final query = _searchController.text.trim();
+  /// Valida o texto digitado e abre a tela de resultados.
+///
+/// A própria [ResultsScreen] será responsável por consultar a OMDb.
+void _searchMovie() {
+  final query = _searchController.text.trim();
 
-    if (query.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Digite o nome de um filme ou série.',
-          ),
-        ),
-      );
-
-      return;
-    }
-
+  if (query.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text(
-          'Pesquisando por "$query"...',
+          'Digite o nome de um filme ou série.',
         ),
       ),
     );
+
+    return;
   }
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) {
+        return ResultsScreen(
+          query: query,
+        );
+      },
+    ),
+  );
+}
 
   /// Insere automaticamente uma pesquisa popular no campo.
   void _selectPopularSearch(String title) {
