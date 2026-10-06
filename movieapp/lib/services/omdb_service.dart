@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import '../models/movie_details.dart';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
@@ -71,4 +73,49 @@ class OmdbService {
         )
         .toList();
   }
+
+  /// Busca as informações completas de uma obra utilizando o IMDb ID.
+///
+/// [imdbId] é o identificador único do filme, série ou episódio
+/// fornecido pela própria OMDb.
+///
+/// Retorna um objeto [MovieDetails] contendo os dados detalhados.
+///
+/// Pode lançar uma [Exception] caso a obra não seja encontrada
+/// ou ocorra algum problema na comunicação com a API.
+static Future<MovieDetails> getMovieDetails(String imdbId) async {
+  final apiKey = dotenv.env['OMDB_API_KEY'];
+
+  // Garante que a chave da API foi configurada corretamente.
+  if (apiKey == null || apiKey.isEmpty) {
+    throw Exception('Chave da OMDb API não configurada.');
+  }
+
+  // A consulta utiliza o IMDb ID e solicita a sinopse completa.
+  final uri = Uri.parse(_baseUrl).replace(
+    queryParameters: {
+      'apikey': apiKey,
+      'i': imdbId,
+      'plot': 'full',
+    },
+  );
+
+  final response = await http.get(uri);
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      'Erro ao acessar a OMDb API. Código: ${response.statusCode}',
+    );
+  }
+
+  final Map<String, dynamic> data = jsonDecode(response.body);
+
+  if (data['Response'] == 'False') {
+    throw Exception(
+      data['Error'] ?? 'Não foi possível carregar os detalhes.',
+    );
+  }
+
+  return MovieDetails.fromJson(data);
+}
 }

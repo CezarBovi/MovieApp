@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'details_screen.dart';
 import '../models/movie_summary.dart';
 import '../services/omdb_service.dart';
 
@@ -11,10 +12,7 @@ class ResultsScreen extends StatefulWidget {
   /// Texto pesquisado pelo usuário.
   final String query;
 
-  const ResultsScreen({
-    super.key,
-    required this.query,
-  });
+  const ResultsScreen({super.key, required this.query});
 
   @override
   State<ResultsScreen> createState() => _ResultsScreenState();
@@ -43,17 +41,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Resultados da pesquisa'),
-      ),
+      appBar: AppBar(title: const Text('Resultados da pesquisa')),
       body: FutureBuilder<List<MovieSummary>>(
         future: _moviesFuture,
         builder: (context, snapshot) {
           // Exibe carregamento enquanto espera a resposta da API.
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           // Exibe uma mensagem caso ocorra algum erro.
@@ -64,10 +58,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                    ),
+                    const Icon(Icons.error_outline, size: 64),
                     const SizedBox(height: 16),
                     Text(
                       'Não foi possível realizar a pesquisa.',
@@ -77,10 +68,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      '${snapshot.error}',
-                      textAlign: TextAlign.center,
-                    ),
+                    Text('${snapshot.error}', textAlign: TextAlign.center),
                     const SizedBox(height: 20),
                     FilledButton(
                       onPressed: _retrySearch,
@@ -102,10 +90,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.search_off,
-                      size: 72,
-                    ),
+                    const Icon(Icons.search_off, size: 72),
                     const SizedBox(height: 16),
                     Text(
                       'Nenhum resultado encontrado',
@@ -136,12 +121,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  20,
-                  20,
-                  20,
-                  12,
-                ),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
                 child: Text(
                   'Resultados para "${widget.query}"',
                   style: theme.textTheme.titleLarge?.copyWith(
@@ -152,12 +132,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
               Expanded(
                 child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(
-                    16,
-                    4,
-                    16,
-                    24,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                   itemCount: movies.length,
                   separatorBuilder: (context, index) {
                     return const SizedBox(height: 12);
@@ -172,11 +147,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
                         // A tela de detalhes será implementada
                         // na próxima etapa do projeto.
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Selecionado: ${movie.title}',
-                              ),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return DetailsScreen(imdbId: movie.imdbId);
+                              },
                             ),
                           );
                         },
@@ -185,23 +161,20 @@ class _ResultsScreenState extends State<ResultsScreen> {
                           padding: const EdgeInsets.all(12),
                           child: Row(
                             children: [
-                              _PosterImage(
-                                posterUrl: movie.poster,
-                              ),
+                              _PosterImage(posterUrl: movie.poster),
 
                               const SizedBox(width: 16),
 
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       movie.title,
                                       style: theme.textTheme.titleMedium
                                           ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
 
                                     const SizedBox(height: 6),
@@ -210,25 +183,20 @@ class _ResultsScreenState extends State<ResultsScreen> {
                                       movie.year,
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
-                                        color: theme
-                                            .colorScheme.onSurfaceVariant,
-                                      ),
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
                                     ),
 
                                     const SizedBox(height: 8),
 
-                                    Chip(
-                                      label: Text(
-                                        _formatType(movie.type),
-                                      ),
-                                    ),
+                                    Chip(label: Text(_formatType(movie.type))),
                                   ],
                                 ),
                               ),
 
-                              const Icon(
-                                Icons.chevron_right,
-                              ),
+                              const Icon(Icons.chevron_right),
                             ],
                           ),
                         ),
@@ -265,29 +233,21 @@ class _ResultsScreenState extends State<ResultsScreen> {
 class _PosterImage extends StatelessWidget {
   final String posterUrl;
 
-  const _PosterImage({
-    required this.posterUrl,
-  });
+  const _PosterImage({required this.posterUrl});
 
   @override
   Widget build(BuildContext context) {
-    final hasPoster =
-        posterUrl.isNotEmpty && posterUrl != 'N/A';
+    final hasPoster = posterUrl.isNotEmpty && posterUrl != 'N/A';
 
     if (!hasPoster) {
       return Container(
         width: 75,
         height: 110,
         decoration: BoxDecoration(
-          color: Theme.of(context)
-              .colorScheme
-              .surfaceContainerHighest,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Icon(
-          Icons.movie_outlined,
-          size: 36,
-        ),
+        child: const Icon(Icons.movie_outlined, size: 36),
       );
     }
 
@@ -304,12 +264,8 @@ class _PosterImage extends StatelessWidget {
           return Container(
             width: 75,
             height: 110,
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest,
-            child: const Icon(
-              Icons.broken_image_outlined,
-            ),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: const Icon(Icons.broken_image_outlined),
           );
         },
       ),

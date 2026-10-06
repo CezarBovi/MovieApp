@@ -57,7 +57,8 @@ class MovieDetails {
 
   /// Converte o JSON retornado pela OMDb em um objeto [MovieDetails].
   factory MovieDetails.fromJson(Map<String, dynamic> json) {
-    final List<dynamic> ratingsJson = json['Ratings'] ?? [];
+    final List<dynamic> ratingsJson =
+    json['Ratings'] is List ? json['Ratings'] : [];
 
     return MovieDetails(
       title: json['Title'] ?? '',
