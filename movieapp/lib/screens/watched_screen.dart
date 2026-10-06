@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../models/user_movie.dart';
 import '../services/collection_service.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_header.dart';
 import 'details_screen.dart';
 
-/// Tela responsável por exibir o histórico de filmes assistidos.
+/// Exibe todos os filmes marcados como assistidos.
 ///
-/// Também apresenta a nota IMDb e a avaliação pessoal do usuário.
+/// Também apresenta a nota IMDb e a avaliação
+/// pessoal atribuída pelo usuário.
 class WatchedScreen extends StatefulWidget {
   const WatchedScreen({super.key});
 
   @override
-  State<WatchedScreen> createState() => _WatchedScreenState();
+  State<WatchedScreen> createState() =>
+      _WatchedScreenState();
 }
 
 class _WatchedScreenState extends State<WatchedScreen> {
@@ -28,7 +32,7 @@ class _WatchedScreenState extends State<WatchedScreen> {
     _watchedFuture = CollectionService.getWatched();
   }
 
-  /// Atualiza a tela após alguma alteração.
+  /// Atualiza os dados exibidos.
   void _refresh() {
     setState(() {
       _loadMovies();
@@ -46,16 +50,14 @@ class _WatchedScreenState extends State<WatchedScreen> {
     _refresh();
   }
 
-  /// Abre os detalhes do filme selecionado.
+  /// Abre a tela de detalhes.
   Future<void> _openDetails(UserMovie movie) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) {
-          return DetailsScreen(
-            imdbId: movie.imdbId,
-          );
-        },
+        builder: (context) => DetailsScreen(
+          imdbId: movie.imdbId,
+        ),
       ),
     );
 
@@ -64,8 +66,6 @@ class _WatchedScreenState extends State<WatchedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return SafeArea(
       child: FutureBuilder<List<UserMovie>>(
         future: _watchedFuture,
@@ -83,129 +83,10 @@ class _WatchedScreenState extends State<WatchedScreen> {
             return const _EmptyWatched();
           }
 
-          return ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              Text(
-                'MovieApp',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              Text(
-                'MINHAS LISTAS',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              Text(
-                'Já assistidos',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 4),
-
-              Text(
-                '${movies.length} ${movies.length == 1 ? 'filme' : 'filmes'}',
-              ),
-
-              const SizedBox(height: 8),
-
-              const Text(
-                'Seu histórico de cinema, com a sua opinião em notas de 1 a 10.',
-              ),
-
-              const SizedBox(height: 24),
-
-              ...movies.map(
-                (movie) => Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
-                  child: Card(
-                    child: InkWell(
-                      onTap: () {
-                        _openDetails(movie);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Row(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            _Poster(
-                              poster: movie.poster,
-                            ),
-
-                            const SizedBox(width: 14),
-
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    movie.title,
-                                    style: theme
-                                        .textTheme.titleMedium
-                                        ?.copyWith(
-                                      fontWeight:
-                                          FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 4),
-
-                                  Text(
-                                    '${movie.year} · ${_formatType(movie.type)}',
-                                  ),
-
-                                  const SizedBox(height: 8),
-
-                                  const Chip(
-                                    label: Text('Assistido'),
-                                  ),
-
-                                  const SizedBox(height: 6),
-
-                                  Text(
-                                    'IMDb: ${_displayRating(movie.imdbRating)}',
-                                  ),
-
-                                  Text(
-                                    movie.userRating == null
-                                        ? 'Minha nota: Ainda sem nota'
-                                        : 'Minha nota: ${movie.userRating}/10',
-                                  ),
-
-                                  const SizedBox(height: 10),
-
-                                  TextButton(
-                                    onPressed: () {
-                                      _removeWatched(movie);
-                                    },
-                                    child: const Text(
-                                      'Desmarcar assistido',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          return _WatchedContent(
+            movies: movies,
+            onOpenDetails: _openDetails,
+            onRemove: _removeWatched,
           );
         },
       ),
@@ -213,34 +94,108 @@ class _WatchedScreenState extends State<WatchedScreen> {
   }
 }
 
-/// Tela vazia exibida quando nenhum filme foi assistido.
-class _EmptyWatched extends StatelessWidget {
-  const _EmptyWatched();
+class _WatchedContent extends StatelessWidget {
+  final List<UserMovie> movies;
+  final Future<void> Function(UserMovie) onOpenDetails;
+  final Future<void> Function(UserMovie) onRemove;
+
+  const _WatchedContent({
+    required this.movies,
+    required this.onOpenDetails,
+    required this.onRemove,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    final theme = Theme.of(context);
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: 760,
+        ),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            32,
+          ),
           children: [
-            Icon(
-              Icons.check_circle_outline,
-              size: 64,
+            const AppHeader(
+              subtitle: 'MINHAS LISTAS',
             ),
-            SizedBox(height: 16),
+
+            const SizedBox(height: 34),
+
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Já assistidos',
+                    style:
+                        theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+
+                _CounterBadge(
+                  count: movies.length,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
             Text(
-              'Nenhum filme assistido',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+              'Seu histórico de cinema, com a sua opinião '
+              'em notas de 1 a 10.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            SizedBox(height: 8),
-            Text(
-              'Marque um filme como assistido nos detalhes.',
-              textAlign: TextAlign.center,
+
+            const SizedBox(height: 24),
+
+            ...movies.map(
+              (movie) => Padding(
+                padding:
+                    const EdgeInsets.only(bottom: 14),
+                child: _WatchedCard(
+                  movie: movie,
+                  onTap: () {
+                    onOpenDetails(movie);
+                  },
+                  onRemove: () {
+                    onRemove(movie);
+                  },
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 18,
+                  color:
+                      theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'A nota IMDb vem da OMDb. Minha nota '
+                    'é a avaliação que você deu ao filme.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color:
+                          theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -249,7 +204,252 @@ class _EmptyWatched extends StatelessWidget {
   }
 }
 
-/// Exibe o pôster do filme.
+class _WatchedCard extends StatelessWidget {
+  final UserMovie movie;
+  final VoidCallback onTap;
+  final VoidCallback onRemove;
+
+  const _WatchedCard({
+    required this.movie,
+    required this.onTap,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          children: [
+            InkWell(
+              onTap: onTap,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Poster(
+                    poster: movie.poster,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          movie.title,
+                          style: theme.textTheme.titleLarge
+                              ?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          '${movie.year} · '
+                          '${_formatType(movie.type)}',
+                          style:
+                              theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme
+                                .onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.check_circle_outline,
+                              size: 17,
+                              color:
+                                  theme.colorScheme.primary,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Assistido',
+                              style: TextStyle(
+                                color:
+                                    theme.colorScheme.primary,
+                                fontWeight:
+                                    FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _RatingBox(
+                    title: 'Nota IMDb · OMDb',
+                    value:
+                        _displayRating(movie.imdbRating),
+                    color: AppTheme.ratingYellow,
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
+                Expanded(
+                  child: _RatingBox(
+                    title: 'Minha nota · Você',
+                    value: movie.userRating == null
+                        ? 'Ainda sem nota'
+                        : '${movie.userRating}/10',
+                    color:
+                        theme.colorScheme.secondary,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: onRemove,
+                icon: const Icon(
+                  Icons.remove_circle_outline,
+                ),
+                label: const Text(
+                  'Desmarcar assistido',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyWatched extends StatelessWidget {
+  const _EmptyWatched();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(30),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.check_circle_outline,
+              size: 64,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(height: 18),
+            Text(
+              'Nenhum filme assistido',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Marque um filme como assistido '
+              'na tela de detalhes.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CounterBadge extends StatelessWidget {
+  final int count;
+
+  const _CounterBadge({
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary
+            .withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        '$count ${count == 1 ? 'filme' : 'filmes'}',
+        style: TextStyle(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+class _RatingBox extends StatelessWidget {
+  final String title;
+  final String value;
+  final Color color;
+
+  const _RatingBox({
+    required this.title,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(11),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.labelSmall,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _Poster extends StatelessWidget {
   final String poster;
 
@@ -261,21 +461,21 @@ class _Poster extends StatelessWidget {
   Widget build(BuildContext context) {
     if (poster.isEmpty || poster == 'N/A') {
       return const SizedBox(
-        width: 80,
-        height: 115,
+        width: 84,
+        height: 116,
         child: Icon(
           Icons.movie_outlined,
-          size: 42,
+          size: 40,
         ),
       );
     }
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       child: Image.network(
         poster,
-        width: 80,
-        height: 115,
+        width: 84,
+        height: 116,
         fit: BoxFit.cover,
       ),
     );
@@ -296,9 +496,7 @@ String _formatType(String type) {
 }
 
 String _displayRating(String rating) {
-  if (rating.isEmpty || rating == 'N/A') {
-    return 'Sem nota';
-  }
-
-  return rating;
+  return rating.isEmpty || rating == 'N/A'
+      ? 'Sem nota'
+      : rating;
 }
