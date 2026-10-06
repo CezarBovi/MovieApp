@@ -1,13 +1,17 @@
+
 import 'package:flutter/material.dart';
 
 import '../models/movie_details.dart';
 import '../models/rating.dart';
+import '../models/user_movie.dart';
 import '../services/omdb_service.dart';
+import '../services/collection_service.dart';
 
-/// Tela responsável por exibir todas as informações de uma obra.
+/// Tela responsável por exibir os detalhes de um filme ou série.
 ///
-/// Os dados são carregados da OMDb utilizando o IMDb ID selecionado
-/// na tela de resultados.
+/// Os dados são consultados na OMDb utilizando o IMDb ID.
+/// Também permite gerenciar favoritos, filmes assistidos,
+/// lista de desejos e avaliações pessoais.
 class DetailsScreen extends StatefulWidget {
   /// Identificador único da obra no IMDb.
   final String imdbId;
@@ -22,20 +26,24 @@ class DetailsScreen extends StatefulWidget {
 }
 
 class _DetailsScreenState extends State<DetailsScreen> {
-  /// Requisição utilizada para carregar os detalhes da obra.
+  /// Requisição responsável por carregar os detalhes da obra.
   late Future<MovieDetails> _movieFuture;
 
   @override
   void initState() {
     super.initState();
+    _loadMovie();
+  }
 
+  /// Realiza a consulta dos detalhes na OMDb.
+  void _loadMovie() {
     _movieFuture = OmdbService.getMovieDetails(widget.imdbId);
   }
 
-  /// Tenta carregar novamente os dados caso ocorra um erro.
+  /// Repete a consulta caso ocorra algum erro.
   void _retry() {
     setState(() {
-      _movieFuture = OmdbService.getMovieDetails(widget.imdbId);
+      _loadMovie();
     });
   }
 
@@ -48,12 +56,14 @@ class _DetailsScreenState extends State<DetailsScreen> {
       body: FutureBuilder<MovieDetails>(
         future: _movieFuture,
         builder: (context, snapshot) {
+          // Aguarda a resposta da API.
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
 
+          // Exibe uma mensagem caso a requisição falhe.
           if (snapshot.hasError) {
             return _ErrorState(
               message: snapshot.error.toString(),
@@ -77,12 +87,161 @@ class _DetailsScreenState extends State<DetailsScreen> {
 }
 
 /// Conteúdo principal da tela de detalhes.
-class _MovieDetailsContent extends StatelessWidget {
+///
+/// Apresenta as informações da OMDb e gerencia os dados
+/// pessoais do usuário armazenados localmente.
+class _MovieDetailsContent extends StatefulWidget {
   final MovieDetails movie;
 
   const _MovieDetailsContent({
     required this.movie,
   });
+
+  @override
+  State<_MovieDetailsContent> createState() =>
+      _MovieDetailsContentState();
+}
+
+class _MovieDetailsContentState
+    extends State<_MovieDetailsContent> {
+
+  /// Informações pessoais relacionadas ao filme.
+  UserMovie? _userMovie;
+
+  /// Indica se os dados locais estão sendo carregados.
+  bool _loadingCollection = true;
+
+  /// Facilita o acesso às informações da obra.
+  MovieDetails get movie => widget.movie;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCollection();
+  }
+
+  /// Carrega os dados pessoais já salvos para o filme.
+  ///
+  /// Caso não exista um registro, cria um objeto inicial
+  /// com as informações recebidas da OMDb.
+  Future<void> _loadCollection() async {
+    final savedMovie =
+        await CollectionService.getMovie(movie.imdbId);
+
+    if (!mounted) return;
+
+    setState(() {
+      _userMovie = savedMovie ??
+          UserMovie(
+            imdbId: movie.imdbId,
+            title: movie.title,
+            year: movie.year,
+            type: movie.type,
+            poster: movie.poster,
+            imdbRating: movie.imdbRating,
+          );
+
+      _loadingCollection = false;
+    });
+  }
+
+  /// Salva as alterações feitas pelo usuário
+  /// utilizando o armazenamento local.
+  Future<void> _save(UserMovie updatedMovie) async {
+    await CollectionService.saveMovie(updatedMovie);
+
+    if (!mounted) return;
+
+    setState(() {
+      _userMovie = updatedMovie;
+    });
+  }
+
+  /// Adiciona ou remove o filme dos favoritos.
+  Future<void> _toggleFavorite() async {
+    final current = _userMovie;
+
+    if (current == null) return;
+
+    await _save(
+      current.copyWith(
+        isFavorite: !current.isFavorite,
+      ),
+    );
+  }
+
+  /// Marca ou desmarca o filme como assistido.
+  ///
+  /// Ao marcar como assistido, o filme é removido
+  /// automaticamente da lista de desejos.
+  Future<void> _toggleWatched() async {
+    final current = _userMovie;
+
+    if (current == null) return;
+
+    final willBeWatched = !current.isWatched;
+
+    await _save(
+      current.copyWith(
+        isWatched: willBeWatched,
+        isWishlist: willBeWatched
+            ? false
+            : current.isWishlist,
+      ),
+    );
+  }
+
+  /// Adiciona ou remove o filme da lista de desejos.
+  Future<void> _toggleWishlist() async {
+    final current = _userMovie;
+
+    if (current == null) return;
+
+    await _save(
+      current.copyWith(
+        isWishlist: !current.isWishlist,
+      ),
+    );
+  }
+
+  /// Abre uma janela para o usuário escolher
+  /// uma avaliação pessoal entre 1 e 10.
+  Future<void> _selectRating() async {
+    final selectedRating = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: const Text('Minha nota'),
+          children: List.generate(
+            10,
+            (index) {
+              final rating = index + 1;
+
+              return SimpleDialogOption(
+                onPressed: () {
+                  Navigator.pop(context, rating);
+                },
+                child: Text('$rating / 10'),
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    // Não altera a nota caso a janela seja fechada.
+    if (!mounted ||
+        selectedRating == null ||
+        _userMovie == null) {
+      return;
+    }
+
+    await _save(
+      _userMovie!.copyWith(
+        userRating: selectedRating,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,11 +252,14 @@ class _MovieDetailsContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Informações principais do filme.
+
+          // Informações principais da obra.
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _Poster(posterUrl: movie.poster),
+              _Poster(
+                posterUrl: movie.poster,
+              ),
 
               const SizedBox(width: 18),
 
@@ -128,6 +290,7 @@ class _MovieDetailsContent extends StatelessWidget {
 
                     if (_hasValue(movie.imdbRating)) ...[
                       const SizedBox(height: 14),
+
                       Chip(
                         avatar: const Icon(
                           Icons.star,
@@ -146,6 +309,7 @@ class _MovieDetailsContent extends StatelessWidget {
 
           const SizedBox(height: 28),
 
+          // Gêneros da obra.
           if (_hasValue(movie.genre)) ...[
             Wrap(
               spacing: 8,
@@ -159,10 +323,14 @@ class _MovieDetailsContent extends StatelessWidget {
                   )
                   .toList(),
             ),
+
             const SizedBox(height: 28),
           ],
 
-          _SectionTitle(title: 'Sinopse'),
+          // Sinopse.
+          const _SectionTitle(
+            title: 'Sinopse',
+          ),
 
           const SizedBox(height: 10),
 
@@ -177,7 +345,10 @@ class _MovieDetailsContent extends StatelessWidget {
 
           const SizedBox(height: 30),
 
-          _SectionTitle(title: 'Informações'),
+          // Informações detalhadas.
+          const _SectionTitle(
+            title: 'Informações',
+          ),
 
           const SizedBox(height: 14),
 
@@ -230,10 +401,13 @@ class _MovieDetailsContent extends StatelessWidget {
               value: movie.totalSeasons!,
             ),
 
+          // Prêmios e indicações.
           if (_hasValue(movie.awards)) ...[
             const SizedBox(height: 20),
 
-            _SectionTitle(title: 'Prêmios'),
+            const _SectionTitle(
+              title: 'Prêmios',
+            ),
 
             const SizedBox(height: 10),
 
@@ -243,10 +417,13 @@ class _MovieDetailsContent extends StatelessWidget {
             ),
           ],
 
+          // Avaliações fornecidas pela OMDb.
           if (movie.ratings.isNotEmpty) ...[
             const SizedBox(height: 30),
 
-            _SectionTitle(title: 'Avaliações · OMDb'),
+            const _SectionTitle(
+              title: 'Avaliações · OMDb',
+            ),
 
             const SizedBox(height: 14),
 
@@ -265,45 +442,126 @@ class _MovieDetailsContent extends StatelessWidget {
 
           const SizedBox(height: 32),
 
-          // Este espaço já prepara a tela para as funcionalidades
-          // pessoais que serão implementadas posteriormente.
-          _SectionTitle(title: 'Minha coleção'),
-
-          const SizedBox(height: 12),
-
-          Text(
-            'Favoritos, filmes assistidos, lista de desejos e '
-            'nota pessoal serão adicionados na próxima etapa.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          // Coleção pessoal do usuário.
+          const _SectionTitle(
+            title: 'Minha coleção',
           ),
+
+          const SizedBox(height: 14),
+
+          if (_loadingCollection)
+            const Center(
+              child: CircularProgressIndicator(),
+            )
+          else if (_userMovie != null) ...[
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+
+                // Favoritos.
+                FilterChip(
+                  selected: _userMovie!.isFavorite,
+                  avatar: Icon(
+                    _userMovie!.isFavorite
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                  ),
+                  label: Text(
+                    _userMovie!.isFavorite
+                        ? 'Favoritado'
+                        : 'Favoritar',
+                  ),
+                  onSelected: (_) {
+                    _toggleFavorite();
+                  },
+                ),
+
+                // Filmes assistidos.
+                FilterChip(
+                  selected: _userMovie!.isWatched,
+                  avatar: Icon(
+                    _userMovie!.isWatched
+                        ? Icons.check_circle
+                        : Icons.check_circle_outline,
+                  ),
+                  label: Text(
+                    _userMovie!.isWatched
+                        ? 'Já assisti'
+                        : 'Marcar como assistido',
+                  ),
+                  onSelected: (_) {
+                    _toggleWatched();
+                  },
+                ),
+
+                // Lista de desejos.
+                FilterChip(
+                  selected: _userMovie!.isWishlist,
+                  avatar: Icon(
+                    _userMovie!.isWishlist
+                        ? Icons.bookmark
+                        : Icons.bookmark_border,
+                  ),
+                  label: Text(
+                    _userMovie!.isWishlist
+                        ? 'Na lista de desejos'
+                        : 'Lista de desejos',
+                  ),
+                  onSelected: (_) {
+                    _toggleWishlist();
+                  },
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Avaliação pessoal de 1 a 10.
+            OutlinedButton.icon(
+              onPressed: _selectRating,
+              icon: const Icon(
+                Icons.star_outline,
+              ),
+              label: Text(
+                _userMovie!.userRating == null
+                    ? 'Dar minha nota'
+                    : 'Minha nota: ${_userMovie!.userRating}/10',
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  /// Verifica se uma informação recebida da OMDb pode ser exibida.
+  /// Verifica se a informação da OMDb é válida.
   static bool _hasValue(String value) {
     return value.isNotEmpty && value != 'N/A';
   }
 
-  /// Traduz o tipo retornado pela OMDb.
+  /// Traduz o tipo de conteúdo para português.
   static String _formatType(String type) {
     switch (type) {
       case 'movie':
         return 'Filme';
+
       case 'series':
         return 'Série';
+
       case 'episode':
         return 'Episódio';
+
       default:
         return type;
     }
   }
 }
 
-/// Exibe o pôster da obra ou uma imagem substituta.
+/// Widget responsável por exibir o pôster da obra.
+///
+/// Caso a imagem não esteja disponível,
+/// mostra um ícone substituto.
 class _Poster extends StatelessWidget {
   final String posterUrl;
 
@@ -340,6 +598,8 @@ class _Poster extends StatelessWidget {
         width: 120,
         height: 175,
         fit: BoxFit.cover,
+
+        // Substitui a imagem caso ocorra erro no carregamento.
         errorBuilder: (context, error, stackTrace) {
           return Container(
             width: 120,
@@ -357,7 +617,7 @@ class _Poster extends StatelessWidget {
   }
 }
 
-/// Título utilizado para separar as seções da tela.
+/// Widget reutilizável para os títulos das seções.
 class _SectionTitle extends StatelessWidget {
   final String title;
 
@@ -370,13 +630,15 @@ class _SectionTitle extends StatelessWidget {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 }
 
-/// Linha utilizada para apresentar uma informação e seu valor.
+/// Exibe uma informação e seu respectivo valor.
+///
+/// Exemplo: Diretor - Christopher Nolan.
 class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
@@ -414,7 +676,10 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-/// Cartão utilizado para mostrar uma avaliação da OMDb.
+/// Cartão responsável por exibir uma avaliação da OMDb.
+///
+/// Cada avaliação possui uma fonte e um valor,
+/// como IMDb, Rotten Tomatoes ou Metacritic.
 class _RatingCard extends StatelessWidget {
   final Rating rating;
 
@@ -442,7 +707,9 @@ class _RatingCard extends StatelessWidget {
             rating.source,
             style: theme.textTheme.labelMedium,
           ),
+
           const SizedBox(height: 4),
+
           Text(
             rating.value,
             style: theme.textTheme.titleMedium?.copyWith(
@@ -455,7 +722,8 @@ class _RatingCard extends StatelessWidget {
   }
 }
 
-/// Estado apresentado caso a requisição de detalhes falhe.
+/// Widget exibido quando ocorre um erro na consulta
+/// dos detalhes do filme.
 class _ErrorState extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
