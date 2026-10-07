@@ -25,11 +25,7 @@ class CollectionService {
     final List<dynamic> decoded = jsonDecode(storedData);
 
     return decoded
-        .map(
-          (item) => UserMovie.fromJson(
-            item as Map<String, dynamic>,
-          ),
-        )
+        .map((item) => UserMovie.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 
@@ -53,16 +49,19 @@ class CollectionService {
   static Future<void> saveMovie(UserMovie movie) async {
     final preferences = await SharedPreferences.getInstance();
     final movies = await getAllMovies();
+    final movieToSave = movie.isWatched && movie.isWishlist
+        ? movie.copyWith(isWishlist: false)
+        : movie;
 
     final index = movies.indexWhere(
-      (item) => item.imdbId == movie.imdbId,
+      (item) => item.imdbId == movieToSave.imdbId,
     );
 
     // Caso o filme ainda não exista, ele é adicionado.
     if (index == -1) {
-      movies.add(movie);
+      movies.add(movieToSave);
     } else {
-      movies[index] = movie;
+      movies[index] = movieToSave;
     }
 
     // Remove automaticamente filmes que não possuem
@@ -75,9 +74,7 @@ class CollectionService {
           item.userRating == null,
     );
 
-    final encoded = jsonEncode(
-      movies.map((movie) => movie.toJson()).toList(),
-    );
+    final encoded = jsonEncode(movies.map((movie) => movie.toJson()).toList());
 
     await preferences.setString(_storageKey, encoded);
   }

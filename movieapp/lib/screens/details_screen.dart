@@ -16,10 +16,7 @@ class DetailsScreen extends StatefulWidget {
   /// Identificador único da obra no IMDb.
   final String imdbId;
 
-  const DetailsScreen({
-    super.key,
-    required this.imdbId,
-  });
+  const DetailsScreen({super.key, required this.imdbId});
 
   @override
   State<DetailsScreen> createState() => _DetailsScreenState();
@@ -59,13 +56,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
               final isDark = themeMode == ThemeMode.dark;
 
               return IconButton(
-                tooltip:
-                    isDark ? 'Ativar tema claro' : 'Ativar tema escuro',
+                tooltip: isDark ? 'Ativar tema claro' : 'Ativar tema escuro',
                 onPressed: themeController.toggleTheme,
                 icon: Icon(
-                  isDark
-                      ? Icons.light_mode_outlined
-                      : Icons.dark_mode_outlined,
+                  isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
                 ),
               );
             },
@@ -77,9 +71,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
         future: _movieFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
@@ -92,16 +84,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
           final movie = snapshot.data;
 
           if (movie == null) {
-            return const Center(
-              child: Text(
-                'Nenhuma informação disponível.',
-              ),
-            );
+            return const Center(child: Text('Nenhuma informação disponível.'));
           }
 
-          return _MovieDetailsContent(
-            movie: movie,
-          );
+          return _MovieDetailsContent(movie: movie);
         },
       ),
     );
@@ -118,17 +104,13 @@ class _DetailsScreenState extends State<DetailsScreen> {
 class _MovieDetailsContent extends StatefulWidget {
   final MovieDetails movie;
 
-  const _MovieDetailsContent({
-    required this.movie,
-  });
+  const _MovieDetailsContent({required this.movie});
 
   @override
-  State<_MovieDetailsContent> createState() =>
-      _MovieDetailsContentState();
+  State<_MovieDetailsContent> createState() => _MovieDetailsContentState();
 }
 
-class _MovieDetailsContentState
-    extends State<_MovieDetailsContent> {
+class _MovieDetailsContentState extends State<_MovieDetailsContent> {
   /// Dados pessoais associados ao filme.
   UserMovie? _userMovie;
 
@@ -149,15 +131,15 @@ class _MovieDetailsContentState
   /// Caso o filme ainda não tenha dados registrados,
   /// cria um objeto inicial com as informações da OMDb.
   Future<void> _loadCollection() async {
-    final savedMovie =
-        await CollectionService.getMovie(movie.imdbId);
+    final savedMovie = await CollectionService.getMovie(movie.imdbId);
 
     if (!mounted) {
       return;
     }
 
     setState(() {
-      _userMovie = savedMovie ??
+      _userMovie =
+          savedMovie ??
           UserMovie(
             imdbId: movie.imdbId,
             title: movie.title,
@@ -192,17 +174,12 @@ class _MovieDetailsContentState
       return;
     }
 
-    await _save(
-      current.copyWith(
-        isFavorite: !current.isFavorite,
-      ),
-    );
+    await _save(current.copyWith(isFavorite: !current.isFavorite));
   }
 
   /// Marca ou desmarca o filme como assistido.
   ///
-  /// Quando marcado como assistido, o filme também
-  /// é removido automaticamente da lista de desejos.
+  /// Filmes marcados como assistidos saem da lista de desejos.
   Future<void> _toggleWatched() async {
     final current = _userMovie;
 
@@ -215,8 +192,8 @@ class _MovieDetailsContentState
     await _save(
       current.copyWith(
         isWatched: willBeWatched,
-        isWishlist:
-            willBeWatched ? false : current.isWishlist,
+        isWishlist: willBeWatched ? false : current.isWishlist,
+        removeRating: !willBeWatched,
       ),
     );
   }
@@ -225,30 +202,22 @@ class _MovieDetailsContentState
   Future<void> _toggleWishlist() async {
     final current = _userMovie;
 
-    if (current == null) {
+    if (current == null || (current.isWatched && !current.isWishlist)) {
       return;
     }
 
-    await _save(
-      current.copyWith(
-        isWishlist: !current.isWishlist,
-      ),
-    );
+    await _save(current.copyWith(isWishlist: !current.isWishlist));
   }
 
   /// Define a nota pessoal atribuída pelo usuário.
   Future<void> _setRating(int rating) async {
     final current = _userMovie;
 
-    if (current == null) {
+    if (current == null || !current.isWatched) {
       return;
     }
 
-    await _save(
-      current.copyWith(
-        userRating: rating,
-      ),
-    );
+    await _save(current.copyWith(userRating: rating));
   }
 
   @override
@@ -257,16 +226,9 @@ class _MovieDetailsContentState
 
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 760,
-        ),
+        constraints: const BoxConstraints(maxWidth: 760),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            20,
-            8,
-            20,
-            36,
-          ),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -277,37 +239,29 @@ class _MovieDetailsContentState
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _Poster(
-                        posterUrl: movie.poster,
-                      ),
+                      _Poster(posterUrl: movie.poster),
 
                       const SizedBox(width: 16),
 
                       Expanded(
                         child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              padding:
-                                  const EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 9,
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.secondary
-                                    .withValues(alpha: 0.13),
-                                borderRadius:
-                                    BorderRadius.circular(20),
+                                color: theme.colorScheme.secondary.withValues(
+                                  alpha: 0.13,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                _formatType(movie.type)
-                                    .toUpperCase(),
-                                style: theme
-                                    .textTheme.labelSmall
-                                    ?.copyWith(
-                                  color:
-                                      theme.colorScheme.secondary,
+                                _formatType(movie.type).toUpperCase(),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.secondary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -317,9 +271,7 @@ class _MovieDetailsContentState
 
                             Text(
                               movie.title,
-                              style: theme
-                                  .textTheme.headlineSmall
-                                  ?.copyWith(
+                              style: theme.textTheme.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: -0.5,
                               ),
@@ -330,25 +282,17 @@ class _MovieDetailsContentState
                             Text(
                               [
                                 movie.year,
-                                if (_hasValue(movie.runtime))
-                                  movie.runtime,
+                                if (_hasValue(movie.runtime)) movie.runtime,
                               ].join(' · '),
-                              style: theme
-                                  .textTheme.bodyMedium
-                                  ?.copyWith(
-                                color: theme.colorScheme
-                                    .onSurfaceVariant,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
 
-                            if (_hasValue(
-                              movie.imdbRating,
-                            )) ...[
+                            if (_hasValue(movie.imdbRating)) ...[
                               const SizedBox(height: 14),
 
-                              _ImdbBadge(
-                                rating: movie.imdbRating,
-                              ),
+                              _ImdbBadge(rating: movie.imdbRating),
                             ],
                           ],
                         ),
@@ -367,31 +311,19 @@ class _MovieDetailsContentState
                   runSpacing: 8,
                   children: movie.genre
                       .split(',')
-                      .map(
-                        (genre) => Chip(
-                          label: Text(
-                            genre.trim(),
-                          ),
-                        ),
-                      )
+                      .map((genre) => Chip(label: Text(genre.trim())))
                       .toList(),
                 ),
 
               const SizedBox(height: 24),
 
-              const _SmallSectionTitle(
-                title: 'SINOPSE',
-              ),
+              const _SmallSectionTitle(title: 'SINOPSE'),
 
               const SizedBox(height: 8),
 
               Text(
-                _hasValue(movie.plot)
-                    ? movie.plot
-                    : 'Sinopse não disponível.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  height: 1.45,
-                ),
+                _hasValue(movie.plot) ? movie.plot : 'Sinopse não disponível.',
+                style: theme.textTheme.bodyLarge?.copyWith(height: 1.45),
               ),
 
               const SizedBox(height: 24),
@@ -404,22 +336,13 @@ class _MovieDetailsContentState
                     child: _InformationCard(
                       children: [
                         if (_hasValue(movie.director))
-                          _CompactInfo(
-                            label: 'Diretor',
-                            value: movie.director,
-                          ),
+                          _CompactInfo(label: 'Diretor', value: movie.director),
 
                         if (_hasValue(movie.actors))
-                          _CompactInfo(
-                            label: 'Elenco',
-                            value: movie.actors,
-                          ),
+                          _CompactInfo(label: 'Elenco', value: movie.actors),
 
                         if (_hasValue(movie.writer))
-                          _CompactInfo(
-                            label: 'Roteiro',
-                            value: movie.writer,
-                          ),
+                          _CompactInfo(label: 'Roteiro', value: movie.writer),
                       ],
                     ),
                   ),
@@ -430,16 +353,10 @@ class _MovieDetailsContentState
                     child: _InformationCard(
                       children: [
                         if (_hasValue(movie.language))
-                          _CompactInfo(
-                            label: 'Idioma',
-                            value: movie.language,
-                          ),
+                          _CompactInfo(label: 'Idioma', value: movie.language),
 
                         if (_hasValue(movie.country))
-                          _CompactInfo(
-                            label: 'País',
-                            value: movie.country,
-                          ),
+                          _CompactInfo(label: 'País', value: movie.country),
 
                         if (_hasValue(movie.released))
                           _CompactInfo(
@@ -459,12 +376,10 @@ class _MovieDetailsContentState
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppTheme.ratingYellow
-                        .withValues(alpha: 0.12),
+                    color: AppTheme.ratingYellow.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: AppTheme.ratingYellow
-                          .withValues(alpha: 0.35),
+                      color: AppTheme.ratingYellow.withValues(alpha: 0.35),
                     ),
                   ),
                   child: Row(
@@ -478,16 +393,12 @@ class _MovieDetailsContentState
 
                       Expanded(
                         child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'PRÊMIOS',
-                              style: theme
-                                  .textTheme.labelSmall
-                                  ?.copyWith(
-                                color:
-                                    AppTheme.ratingYellow,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: AppTheme.ratingYellow,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -496,8 +407,7 @@ class _MovieDetailsContentState
 
                             Text(
                               movie.awards,
-                              style:
-                                  theme.textTheme.bodyMedium,
+                              style: theme.textTheme.bodyMedium,
                             ),
                           ],
                         ),
@@ -510,9 +420,7 @@ class _MovieDetailsContentState
               if (movie.ratings.isNotEmpty) ...[
                 const SizedBox(height: 24),
 
-                const _SmallSectionTitle(
-                  title: 'AVALIAÇÕES · OMDb',
-                ),
+                const _SmallSectionTitle(title: 'AVALIAÇÕES · OMDb'),
 
                 const SizedBox(height: 10),
 
@@ -520,20 +428,14 @@ class _MovieDetailsContentState
                   spacing: 10,
                   runSpacing: 10,
                   children: movie.ratings
-                      .map(
-                        (rating) => _RatingCard(
-                          rating: rating,
-                        ),
-                      )
+                      .map((rating) => _RatingCard(rating: rating))
                       .toList(),
                 ),
               ],
 
               const SizedBox(height: 26),
 
-              const _SmallSectionTitle(
-                title: 'MINHA COLEÇÃO',
-              ),
+              const _SmallSectionTitle(title: 'MINHA COLEÇÃO'),
 
               const SizedBox(height: 10),
 
@@ -587,9 +489,7 @@ class _MovieDetailsContentState
 class _InformationCard extends StatelessWidget {
   final List<Widget> children;
 
-  const _InformationCard({
-    required this.children,
-  });
+  const _InformationCard({required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -610,19 +510,14 @@ class _CompactInfo extends StatelessWidget {
   final String label;
   final String value;
 
-  const _CompactInfo({
-    required this.label,
-    required this.value,
-  });
+  const _CompactInfo({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.only(
-        bottom: 12,
-      ),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -651,34 +546,23 @@ class _CompactInfo extends StatelessWidget {
 class _ImdbBadge extends StatelessWidget {
   final String rating;
 
-  const _ImdbBadge({
-    required this.rating,
-  });
+  const _ImdbBadge({required this.rating});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppTheme.ratingYellow
-            .withValues(alpha: 0.13),
+        color: AppTheme.ratingYellow.withValues(alpha: 0.13),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppTheme.ratingYellow
-              .withValues(alpha: 0.30),
+          color: AppTheme.ratingYellow.withValues(alpha: 0.30),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.star,
-            size: 16,
-            color: AppTheme.ratingYellow,
-          ),
+          const Icon(Icons.star, size: 16, color: AppTheme.ratingYellow),
 
           const SizedBox(width: 5),
 
@@ -724,12 +608,8 @@ class _CollectionCard extends StatelessWidget {
               icon: userMovie.isFavorite
                   ? Icons.favorite
                   : Icons.favorite_border,
-              title: userMovie.isFavorite
-                  ? 'Favoritado'
-                  : 'Favoritar',
-              buttonText: userMovie.isFavorite
-                  ? 'Remover'
-                  : 'Adicionar',
+              title: userMovie.isFavorite ? 'Favoritado' : 'Favoritar',
+              buttonText: userMovie.isFavorite ? 'Remover' : 'Adicionar',
               active: userMovie.isFavorite,
               onPressed: onFavorite,
             ),
@@ -740,12 +620,8 @@ class _CollectionCard extends StatelessWidget {
               icon: userMovie.isWatched
                   ? Icons.check_circle
                   : Icons.check_circle_outline,
-              title: userMovie.isWatched
-                  ? 'Já assisti'
-                  : 'Ainda não assisti',
-              buttonText: userMovie.isWatched
-                  ? 'Desmarcar'
-                  : 'Marcar',
+              title: userMovie.isWatched ? 'Já assisti' : 'Ainda não assisti',
+              buttonText: userMovie.isWatched ? 'Desmarcar' : 'Marcar',
               active: userMovie.isWatched,
               onPressed: onWatched,
             ),
@@ -764,58 +640,58 @@ class _CollectionCard extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            Row(
-              children: [
-                Expanded(
-                  child: Wrap(
-                    spacing: 1,
-                    children: List.generate(
-                      10,
-                      (index) {
+            if (userMovie.isWatched)
+              Row(
+                children: [
+                  Expanded(
+                    child: Wrap(
+                      spacing: 1,
+                      children: List.generate(10, (index) {
                         final rating = index + 1;
 
                         final selected =
                             userMovie.userRating != null &&
-                                rating <=
-                                    userMovie.userRating!;
+                            rating <= userMovie.userRating!;
 
                         return InkWell(
-                          borderRadius:
-                              BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(20),
                           onTap: () {
                             onRatingSelected(rating);
                           },
                           child: Padding(
-                            padding:
-                                const EdgeInsets.all(2),
+                            padding: const EdgeInsets.all(2),
                             child: Icon(
-                              selected
-                                  ? Icons.star
-                                  : Icons.star_border,
+                              selected ? Icons.star : Icons.star_border,
                               size: 21,
-                              color:
-                                  AppTheme.ratingYellow,
+                              color: AppTheme.ratingYellow,
                             ),
                           ),
                         );
-                      },
+                      }),
                     ),
                   ),
-                ),
 
-                const SizedBox(width: 8),
+                  const SizedBox(width: 8),
 
-                Text(
-                  userMovie.userRating == null
-                      ? '-/10'
-                      : '${userMovie.userRating}/10',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: AppTheme.ratingYellow,
-                    fontWeight: FontWeight.bold,
+                  Text(
+                    userMovie.userRating == null
+                        ? '-/10'
+                        : '${userMovie.userRating}/10',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: AppTheme.ratingYellow,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                ],
+              )
+            else
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Marque como assistido para dar uma nota.',
+                  style: theme.textTheme.bodySmall,
                 ),
-              ],
-            ),
+              ),
 
             const Divider(height: 22),
 
@@ -826,8 +702,11 @@ class _CollectionCard extends StatelessWidget {
               title: 'Lista de desejos',
               buttonText: userMovie.isWishlist
                   ? 'Remover'
+                  : userMovie.isWatched
+                  ? 'Já assistido'
                   : 'Adicionar',
               active: userMovie.isWishlist,
+              enabled: userMovie.isWishlist || !userMovie.isWatched,
               onPressed: onWishlist,
             ),
           ],
@@ -843,6 +722,7 @@ class _CollectionRow extends StatelessWidget {
   final String title;
   final String buttonText;
   final bool active;
+  final bool enabled;
   final VoidCallback onPressed;
 
   const _CollectionRow({
@@ -850,6 +730,7 @@ class _CollectionRow extends StatelessWidget {
     required this.title,
     required this.buttonText,
     required this.active,
+    this.enabled = true,
     required this.onPressed,
   });
 
@@ -879,11 +760,11 @@ class _CollectionRow extends StatelessWidget {
 
         active
             ? FilledButton.tonal(
-                onPressed: onPressed,
+                onPressed: enabled ? onPressed : null,
                 child: Text(buttonText),
               )
             : OutlinedButton(
-                onPressed: onPressed,
+                onPressed: enabled ? onPressed : null,
                 child: Text(buttonText),
               ),
       ],
@@ -895,9 +776,7 @@ class _CollectionRow extends StatelessWidget {
 class _SmallSectionTitle extends StatelessWidget {
   final String title;
 
-  const _SmallSectionTitle({
-    required this.title,
-  });
+  const _SmallSectionTitle({required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -918,25 +797,17 @@ class _SmallSectionTitle extends StatelessWidget {
 class _RatingCard extends StatelessWidget {
   final Rating rating;
 
-  const _RatingCard({
-    required this.rating,
-  });
+  const _RatingCard({required this.rating});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Container(
-      constraints: const BoxConstraints(
-        minWidth: 120,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 12,
-      ),
+      constraints: const BoxConstraints(minWidth: 120),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color:
-            theme.colorScheme.surfaceContainerHighest,
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -968,9 +839,7 @@ class _RatingCard extends StatelessWidget {
 class _Poster extends StatelessWidget {
   final String posterUrl;
 
-  const _Poster({
-    required this.posterUrl,
-  });
+  const _Poster({required this.posterUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -981,14 +850,10 @@ class _Poster extends StatelessWidget {
         width: 120,
         height: 175,
         decoration: BoxDecoration(
-          color:
-              theme.colorScheme.surfaceContainerHighest,
+          color: theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(14),
         ),
-        child: const Icon(
-          Icons.movie_outlined,
-          size: 48,
-        ),
+        child: const Icon(Icons.movie_outlined, size: 48),
       );
     }
 
@@ -999,19 +864,12 @@ class _Poster extends StatelessWidget {
         width: 120,
         height: 175,
         fit: BoxFit.cover,
-        errorBuilder: (
-          context,
-          error,
-          stackTrace,
-        ) {
+        errorBuilder: (context, error, stackTrace) {
           return Container(
             width: 120,
             height: 175,
-            color:
-                theme.colorScheme.surfaceContainerHighest,
-            child: const Icon(
-              Icons.broken_image_outlined,
-            ),
+            color: theme.colorScheme.surfaceContainerHighest,
+            child: const Icon(Icons.broken_image_outlined),
           );
         },
       ),
@@ -1025,10 +883,7 @@ class _ErrorState extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const _ErrorState({
-    required this.message,
-    required this.onRetry,
-  });
+  const _ErrorState({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -1040,11 +895,7 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: theme.colorScheme.error,
-            ),
+            Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
 
             const SizedBox(height: 16),
 
@@ -1058,18 +909,13 @@ class _ErrorState extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            Text(
-              message,
-              textAlign: TextAlign.center,
-            ),
+            Text(message, textAlign: TextAlign.center),
 
             const SizedBox(height: 22),
 
             FilledButton(
               onPressed: onRetry,
-              child: const Text(
-                'Tentar novamente',
-              ),
+              child: const Text('Tentar novamente'),
             ),
           ],
         ),

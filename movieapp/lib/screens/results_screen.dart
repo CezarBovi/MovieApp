@@ -13,10 +13,7 @@ class ResultsScreen extends StatefulWidget {
   /// Texto pesquisado pelo usuário.
   final String query;
 
-  const ResultsScreen({
-    super.key,
-    required this.query,
-  });
+  const ResultsScreen({super.key, required this.query});
 
   @override
   State<ResultsScreen> createState() => _ResultsScreenState();
@@ -25,16 +22,37 @@ class ResultsScreen extends StatefulWidget {
 class _ResultsScreenState extends State<ResultsScreen> {
   /// Requisição responsável por buscar os resultados na OMDb.
   late Future<List<MovieSummary>> _moviesFuture;
+  late final TextEditingController _searchController;
+  late String _query;
 
   @override
   void initState() {
     super.initState();
+    _query = widget.query;
+    _searchController = TextEditingController(text: _query);
     _loadMovies();
   }
 
   /// Realiza a pesquisa utilizando o serviço da OMDb.
   void _loadMovies() {
-    _moviesFuture = OmdbService.searchMovies(widget.query);
+    _moviesFuture = OmdbService.searchMovies(_query);
+  }
+
+  /// Atualiza a pesquisa sem sair da tela de resultados.
+  void _searchAgain(String query) {
+    final trimmedQuery = query.trim();
+
+    if (trimmedQuery.isEmpty) {
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _query = trimmedQuery;
+      _searchController.text = trimmedQuery;
+      _loadMovies();
+    });
   }
 
   /// Tenta realizar novamente a pesquisa em caso de erro.
@@ -50,12 +68,16 @@ class _ResultsScreenState extends State<ResultsScreen> {
       context,
       MaterialPageRoute(
         builder: (context) {
-          return DetailsScreen(
-            imdbId: movie.imdbId,
-          );
+          return DetailsScreen(imdbId: movie.imdbId);
         },
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -67,9 +89,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           builder: (context, snapshot) {
             // Estado de carregamento.
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
+              return const Center(child: CircularProgressIndicator());
             }
 
             // Estado de erro.
@@ -84,13 +104,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
             // Estado sem resultados.
             if (movies.isEmpty) {
-              return _EmptyResults(
-                query: widget.query,
-              );
+              return _EmptyResults(query: _query);
             }
 
             return _ResultsContent(
-              query: widget.query,
+              query: _query,
+              searchController: _searchController,
+              onSearchSubmitted: _searchAgain,
               movies: movies,
               onMovieSelected: _openDetails,
             );
@@ -104,11 +124,15 @@ class _ResultsScreenState extends State<ResultsScreen> {
 /// Conteúdo apresentado quando existem resultados.
 class _ResultsContent extends StatelessWidget {
   final String query;
+  final TextEditingController searchController;
+  final ValueChanged<String> onSearchSubmitted;
   final List<MovieSummary> movies;
   final void Function(MovieSummary movie) onMovieSelected;
 
   const _ResultsContent({
     required this.query,
+    required this.searchController,
+    required this.onSearchSubmitted,
     required this.movies,
     required this.onMovieSelected,
   });
@@ -119,19 +143,12 @@ class _ResultsContent extends StatelessWidget {
 
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 760,
-        ),
+        constraints: const BoxConstraints(maxWidth: 760),
         child: Column(
           children: [
             // Cabeçalho fixo.
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                20,
-                18,
-                20,
-                0,
-              ),
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
               child: Row(
                 children: [
                   IconButton(
@@ -139,17 +156,13 @@ class _ResultsContent extends StatelessWidget {
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    icon: const Icon(
-                      Icons.arrow_back,
-                    ),
+                    icon: const Icon(Icons.arrow_back),
                   ),
 
                   const SizedBox(width: 8),
 
                   const Expanded(
-                    child: AppHeader(
-                      subtitle: 'Resultados da pesquisa',
-                    ),
+                    child: AppHeader(subtitle: 'Resultados da pesquisa'),
                   ),
                 ],
               ),
@@ -159,26 +172,21 @@ class _ResultsContent extends StatelessWidget {
 
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  20,
-                  0,
-                  20,
-                  30,
-                ),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
                 children: [
                   // Mostra a pesquisa realizada.
                   TextField(
-                    controller: TextEditingController(
-                      text: query,
-                    ),
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(
-                        Icons.search,
-                      ),
-                      suffixIcon: Icon(
-                        Icons.close,
-                        size: 18,
+                    controller: searchController,
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: onSearchSubmitted,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      suffixIcon: IconButton(
+                        tooltip: 'Pesquisar',
+                        onPressed: () {
+                          onSearchSubmitted(searchController.text);
+                        },
+                        icon: Icon(Icons.search),
                       ),
                     ),
                   ),
@@ -192,8 +200,7 @@ class _ResultsContent extends StatelessWidget {
                       Expanded(
                         child: Text(
                           'Resultados para “$query”',
-                          style:
-                              theme.textTheme.titleLarge?.copyWith(
+                          style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.3,
                           ),
@@ -206,14 +213,14 @@ class _ResultsContent extends StatelessWidget {
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary
-                              .withValues(alpha: 0.12),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.12,
+                          ),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           '${movies.length} resultados',
-                          style:
-                              theme.textTheme.labelMedium?.copyWith(
+                          style: theme.textTheme.labelMedium?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
@@ -227,9 +234,7 @@ class _ResultsContent extends StatelessWidget {
                   // Cards dos resultados.
                   ...movies.map(
                     (movie) => Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: 12,
-                      ),
+                      padding: const EdgeInsets.only(bottom: 12),
                       child: _MovieResultCard(
                         movie: movie,
                         onTap: () {
@@ -253,10 +258,7 @@ class _MovieResultCard extends StatelessWidget {
   final MovieSummary movie;
   final VoidCallback onTap;
 
-  const _MovieResultCard({
-    required this.movie,
-    required this.onTap,
-  });
+  const _MovieResultCard({required this.movie, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -270,9 +272,7 @@ class _MovieResultCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              _PosterImage(
-                posterUrl: movie.poster,
-              ),
+              _PosterImage(posterUrl: movie.poster),
 
               const SizedBox(width: 16),
 
@@ -296,8 +296,7 @@ class _MovieResultCard extends StatelessWidget {
                         Text(
                           movie.year,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color:
-                                theme.colorScheme.onSurfaceVariant,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
 
@@ -307,8 +306,7 @@ class _MovieResultCard extends StatelessWidget {
                           width: 4,
                           height: 4,
                           decoration: BoxDecoration(
-                            color:
-                                theme.colorScheme.onSurfaceVariant,
+                            color: theme.colorScheme.onSurfaceVariant,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -333,8 +331,9 @@ class _MovieResultCard extends StatelessWidget {
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary
-                            .withValues(alpha: 0.08),
+                        color: theme.colorScheme.primary.withValues(
+                          alpha: 0.08,
+                        ),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -355,8 +354,7 @@ class _MovieResultCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary
-                      .withValues(alpha: 0.08),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -379,16 +377,13 @@ class _MovieResultCard extends StatelessWidget {
 class _PosterImage extends StatelessWidget {
   final String posterUrl;
 
-  const _PosterImage({
-    required this.posterUrl,
-  });
+  const _PosterImage({required this.posterUrl});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final hasPoster =
-        posterUrl.isNotEmpty && posterUrl != 'N/A';
+    final hasPoster = posterUrl.isNotEmpty && posterUrl != 'N/A';
 
     if (!hasPoster) {
       return Container(
@@ -398,10 +393,7 @@ class _PosterImage extends StatelessWidget {
           color: theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Icon(
-          Icons.movie_outlined,
-          size: 38,
-        ),
+        child: const Icon(Icons.movie_outlined, size: 38),
       );
     }
 
@@ -412,19 +404,12 @@ class _PosterImage extends StatelessWidget {
         width: 82,
         height: 112,
         fit: BoxFit.cover,
-        errorBuilder: (
-          context,
-          error,
-          stackTrace,
-        ) {
+        errorBuilder: (context, error, stackTrace) {
           return Container(
             width: 82,
             height: 112,
-            color:
-                theme.colorScheme.surfaceContainerHighest,
-            child: const Icon(
-              Icons.broken_image_outlined,
-            ),
+            color: theme.colorScheme.surfaceContainerHighest,
+            child: const Icon(Icons.broken_image_outlined),
           );
         },
       ),
@@ -436,9 +421,7 @@ class _PosterImage extends StatelessWidget {
 class _EmptyResults extends StatelessWidget {
   final String query;
 
-  const _EmptyResults({
-    required this.query,
-  });
+  const _EmptyResults({required this.query});
 
   @override
   Widget build(BuildContext context) {
@@ -446,9 +429,7 @@ class _EmptyResults extends StatelessWidget {
 
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 600,
-        ),
+        constraints: const BoxConstraints(maxWidth: 600),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -459,17 +440,13 @@ class _EmptyResults extends StatelessWidget {
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    icon: const Icon(
-                      Icons.arrow_back,
-                    ),
+                    icon: const Icon(Icons.arrow_back),
                   ),
 
                   const SizedBox(width: 8),
 
                   const Expanded(
-                    child: AppHeader(
-                      subtitle: 'Resultados da pesquisa',
-                    ),
+                    child: AppHeader(subtitle: 'Resultados da pesquisa'),
                   ),
                 ],
               ),
@@ -480,8 +457,7 @@ class _EmptyResults extends StatelessWidget {
                 width: 110,
                 height: 110,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.secondary
-                      .withValues(alpha: 0.10),
+                  color: theme.colorScheme.secondary.withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -522,12 +498,8 @@ class _EmptyResults extends StatelessWidget {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  icon: const Icon(
-                    Icons.refresh,
-                  ),
-                  label: const Text(
-                    'Tentar outra pesquisa',
-                  ),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Tentar outra pesquisa'),
                 ),
               ),
 
@@ -545,10 +517,7 @@ class _ErrorState extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const _ErrorState({
-    required this.message,
-    required this.onRetry,
-  });
+  const _ErrorState({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -560,11 +529,7 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: theme.colorScheme.error,
-            ),
+            Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
 
             const SizedBox(height: 18),
 
@@ -590,9 +555,7 @@ class _ErrorState extends StatelessWidget {
 
             FilledButton(
               onPressed: onRetry,
-              child: const Text(
-                'Tentar novamente',
-              ),
+              child: const Text('Tentar novamente'),
             ),
           ],
         ),

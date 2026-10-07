@@ -11,8 +11,7 @@ class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
 
   @override
-  State<WishlistScreen> createState() =>
-      _WishlistScreenState();
+  State<WishlistScreen> createState() => _WishlistScreenState();
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
@@ -37,23 +36,16 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
   /// Remove um filme da lista de desejos.
   Future<void> _remove(UserMovie movie) async {
-    await CollectionService.saveMovie(
-      movie.copyWith(
-        isWishlist: false,
-      ),
-    );
+    await CollectionService.saveMovie(movie.copyWith(isWishlist: false));
 
     _refresh();
   }
 
   /// Marca a obra como assistida e a remove
-  /// automaticamente da lista de desejos.
+  /// da lista de desejos.
   Future<void> _markWatched(UserMovie movie) async {
     await CollectionService.saveMovie(
-      movie.copyWith(
-        isWatched: true,
-        isWishlist: false,
-      ),
+      movie.copyWith(isWatched: true, isWishlist: false),
     );
 
     _refresh();
@@ -63,9 +55,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DetailsScreen(
-          imdbId: movie.imdbId,
-        ),
+        builder: (context) => DetailsScreen(imdbId: movie.imdbId),
       ),
     );
 
@@ -78,11 +68,8 @@ class _WishlistScreenState extends State<WishlistScreen> {
       child: FutureBuilder<List<UserMovie>>(
         future: _wishlistFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
           }
 
           final movies = snapshot.data ?? [];
@@ -122,20 +109,11 @@ class _WishlistContent extends StatelessWidget {
 
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 760,
-        ),
+        constraints: const BoxConstraints(maxWidth: 760),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            20,
-            20,
-            20,
-            32,
-          ),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
           children: [
-            const AppHeader(
-              subtitle: 'MINHAS LISTAS',
-            ),
+            const AppHeader(subtitle: 'MINHAS LISTAS'),
 
             const SizedBox(height: 34),
 
@@ -144,16 +122,13 @@ class _WishlistContent extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Lista de desejos',
-                    style:
-                        theme.textTheme.headlineMedium?.copyWith(
+                    style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
 
-                _CounterBadge(
-                  count: movies.length,
-                ),
+                _CounterBadge(count: movies.length),
               ],
             ),
 
@@ -171,8 +146,7 @@ class _WishlistContent extends StatelessWidget {
 
             ...movies.map(
               (movie) => Padding(
-                padding:
-                    const EdgeInsets.only(bottom: 14),
+                padding: const EdgeInsets.only(bottom: 14),
                 child: _WishlistCard(
                   movie: movie,
                   onTap: () {
@@ -231,19 +205,15 @@ class _WishlistCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _Poster(
-                    poster: movie.poster,
-                  ),
+                  _Poster(poster: movie.poster),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           movie.title,
-                          style: theme.textTheme.titleLarge
-                              ?.copyWith(
+                          style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -251,10 +221,8 @@ class _WishlistCard extends StatelessWidget {
                         Text(
                           '${movie.year} · '
                           '${_formatType(movie.type)}',
-                          style:
-                              theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme
-                                .onSurfaceVariant,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -263,17 +231,14 @@ class _WishlistCard extends StatelessWidget {
                             Icon(
                               Icons.bookmark_border,
                               size: 17,
-                              color:
-                                  theme.colorScheme.primary,
+                              color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 5),
                             Text(
                               'Quero assistir',
                               style: TextStyle(
-                                color:
-                                    theme.colorScheme.primary,
-                                fontWeight:
-                                    FontWeight.w600,
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
@@ -281,9 +246,7 @@ class _WishlistCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(
-                    Icons.chevron_right,
-                  ),
+                  const Icon(Icons.chevron_right),
                 ],
               ),
             ),
@@ -295,8 +258,7 @@ class _WishlistCard extends StatelessWidget {
                 Expanded(
                   child: _RatingBox(
                     title: 'Nota IMDb · OMDb',
-                    value:
-                        _displayRating(movie.imdbRating),
+                    value: _displayRating(movie.imdbRating),
                     color: AppTheme.ratingYellow,
                   ),
                 ),
@@ -309,8 +271,7 @@ class _WishlistCard extends StatelessWidget {
                     value: movie.userRating == null
                         ? 'Ainda sem nota'
                         : '${movie.userRating}/10',
-                    color:
-                        theme.colorScheme.secondary,
+                    color: theme.colorScheme.secondary,
                   ),
                 ),
               ],
@@ -324,12 +285,8 @@ class _WishlistCard extends StatelessWidget {
                   flex: 2,
                   child: FilledButton.icon(
                     onPressed: onWatched,
-                    icon: const Icon(
-                      Icons.check_circle_outline,
-                    ),
-                    label: const Text(
-                      'Marcar como assistido',
-                    ),
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: const Text('Marcar como assistido'),
                   ),
                 ),
 
@@ -338,12 +295,8 @@ class _WishlistCard extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: onRemove,
-                    icon: const Icon(
-                      Icons.delete_outline,
-                    ),
-                    label: const Text(
-                      'Remover',
-                    ),
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Remover'),
                   ),
                 ),
               ],
@@ -398,22 +351,16 @@ class _EmptyWishlist extends StatelessWidget {
 class _CounterBadge extends StatelessWidget {
   final int count;
 
-  const _CounterBadge({
-    required this.count,
-  });
+  const _CounterBadge({required this.count});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary
-            .withValues(alpha: 0.12),
+        color: theme.colorScheme.primary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -451,10 +398,7 @@ class _RatingBox extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: theme.textTheme.labelSmall,
-          ),
+          Text(title, style: theme.textTheme.labelSmall),
           const SizedBox(height: 4),
           Text(
             value,
@@ -472,9 +416,7 @@ class _RatingBox extends StatelessWidget {
 class _Poster extends StatelessWidget {
   final String poster;
 
-  const _Poster({
-    required this.poster,
-  });
+  const _Poster({required this.poster});
 
   @override
   Widget build(BuildContext context) {
@@ -482,21 +424,13 @@ class _Poster extends StatelessWidget {
       return const SizedBox(
         width: 84,
         height: 116,
-        child: Icon(
-          Icons.movie_outlined,
-          size: 40,
-        ),
+        child: Icon(Icons.movie_outlined, size: 40),
       );
     }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
-      child: Image.network(
-        poster,
-        width: 84,
-        height: 116,
-        fit: BoxFit.cover,
-      ),
+      child: Image.network(poster, width: 84, height: 116, fit: BoxFit.cover),
     );
   }
 }
@@ -515,7 +449,5 @@ String _formatType(String type) {
 }
 
 String _displayRating(String rating) {
-  return rating.isEmpty || rating == 'N/A'
-      ? 'Sem nota'
-      : rating;
+  return rating.isEmpty || rating == 'N/A' ? 'Sem nota' : rating;
 }
