@@ -115,37 +115,9 @@ class _SearchScreenState extends State<SearchScreen> {
                     _searchMovie();
                   },
                   textInputAction: TextInputAction.search,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Pesquisar filmes ou séries...',
-                    prefixIcon: const Icon(
-                      Icons.search,
-                    ),
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.only(
-                        right: 10,
-                      ),
-                      child: Center(
-                        widthFactor: 1,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme
-                                .colorScheme
-                                .surfaceContainerHighest,
-                            borderRadius:
-                                BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            '⌘K',
-                            style:
-                                theme.textTheme.labelSmall,
-                          ),
-                        ),
-                      ),
-                    ),
+                    prefixIcon: Icon(Icons.search),
                   ),
                 ),
 

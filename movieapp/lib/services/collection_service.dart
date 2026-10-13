@@ -70,6 +70,7 @@ class CollectionService {
       (item) =>
           !item.isFavorite &&
           !item.isWatched &&
+          !item.hasEpisodeProgress &&
           !item.isWishlist &&
           item.userRating == null,
     );
@@ -90,7 +91,9 @@ class CollectionService {
   static Future<List<UserMovie>> getWatched() async {
     final movies = await getAllMovies();
 
-    return movies.where((movie) => movie.isWatched).toList();
+    return movies
+        .where((movie) => movie.isWatched || movie.hasEpisodeProgress)
+        .toList();
   }
 
   /// Retorna apenas os filmes adicionados à lista de desejos.

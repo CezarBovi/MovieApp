@@ -44,6 +44,9 @@ class _WatchedScreenState extends State<WatchedScreen> {
     await CollectionService.saveMovie(
       movie.copyWith(
         isWatched: false,
+        watchedEpisodes: const [],
+        clearLastWatched: true,
+        removeRating: true,
       ),
     );
 
@@ -259,19 +262,18 @@ class _WatchedCard extends StatelessWidget {
                         Row(
                           children: [
                             Icon(
-                              Icons.check_circle_outline,
+                              movie.isSeries
+                                  ? Icons.playlist_play
+                                  : Icons.check_circle_outline,
                               size: 17,
-                              color:
-                                  theme.colorScheme.primary,
+                              color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 5),
                             Text(
-                              'Assistido',
+                              _watchedStatus(movie),
                               style: TextStyle(
-                                color:
-                                    theme.colorScheme.primary,
-                                fontWeight:
-                                    FontWeight.w600,
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
@@ -499,4 +501,16 @@ String _displayRating(String rating) {
   return rating.isEmpty || rating == 'N/A'
       ? 'Sem nota'
       : rating;
+}
+
+String _watchedStatus(UserMovie movie) {
+  if (movie.isSeries) {
+    if (movie.continueWatchingLabel != null) {
+      return '${movie.watchedEpisodes.length} ep. · ${movie.continueWatchingLabel}';
+    }
+
+    return '${movie.watchedEpisodes.length} episódios assistidos';
+  }
+
+  return 'Assistido';
 }

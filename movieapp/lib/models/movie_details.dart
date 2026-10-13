@@ -31,6 +31,10 @@ class MovieDetails {
   /// Esse campo normalmente existe apenas quando a obra é uma série.
   final String? totalSeasons;
 
+  /// Temporada e número do episódio (quando [type] é `episode`).
+  final String? season;
+  final String? episode;
+
   MovieDetails({
     required this.title,
     required this.year,
@@ -53,6 +57,8 @@ class MovieDetails {
     required this.imdbId,
     required this.type,
     this.totalSeasons,
+    this.season,
+    this.episode,
   });
 
   /// Converte o JSON retornado pela OMDb em um objeto [MovieDetails].
@@ -90,6 +96,8 @@ class MovieDetails {
       imdbId: json['imdbID'] ?? '',
       type: json['Type'] ?? '',
       totalSeasons: json['totalSeasons'],
+      season: json['Season'],
+      episode: json['Episode'],
     );
   }
 }

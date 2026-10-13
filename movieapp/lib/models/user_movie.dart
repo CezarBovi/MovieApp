@@ -17,6 +17,13 @@ class UserMovie {
   /// Nota pessoal do usuário, variando de 1 a 10.
   final int? userRating;
 
+  /// Episódios já assistidos (formato `temporada:episódio`, ex.: `2:5`).
+  final List<String> watchedEpisodes;
+
+  /// Último ponto assistido em uma série, para retomar de onde parou.
+  final int? lastWatchedSeason;
+  final int? lastWatchedEpisode;
+
   UserMovie({
     required this.imdbId,
     required this.title,
@@ -28,7 +35,28 @@ class UserMovie {
     this.isWatched = false,
     this.isWishlist = false,
     this.userRating,
+    this.watchedEpisodes = const [],
+    this.lastWatchedSeason,
+    this.lastWatchedEpisode,
   });
+
+  bool get isSeries => type == 'series';
+
+  bool get hasEpisodeProgress => watchedEpisodes.isNotEmpty;
+
+  static String episodeKey(int season, int episode) => '$season:$episode';
+
+  bool isEpisodeWatched(int season, int episode) {
+    return watchedEpisodes.contains(episodeKey(season, episode));
+  }
+
+  String? get continueWatchingLabel {
+    if (lastWatchedSeason == null || lastWatchedEpisode == null) {
+      return null;
+    }
+
+    return 'Temporada $lastWatchedSeason · Episódio $lastWatchedEpisode';
+  }
 
   /// Cria uma cópia do objeto alterando apenas os campos desejados.
   UserMovie copyWith({
@@ -37,6 +65,10 @@ class UserMovie {
     bool? isWishlist,
     int? userRating,
     bool removeRating = false,
+    List<String>? watchedEpisodes,
+    int? lastWatchedSeason,
+    int? lastWatchedEpisode,
+    bool clearLastWatched = false,
   }) {
     return UserMovie(
       imdbId: imdbId,
@@ -51,6 +83,13 @@ class UserMovie {
       userRating: removeRating
           ? null
           : userRating ?? this.userRating,
+      watchedEpisodes: watchedEpisodes ?? this.watchedEpisodes,
+      lastWatchedSeason: clearLastWatched
+          ? null
+          : lastWatchedSeason ?? this.lastWatchedSeason,
+      lastWatchedEpisode: clearLastWatched
+          ? null
+          : lastWatchedEpisode ?? this.lastWatchedEpisode,
     );
   }
 
@@ -67,6 +106,9 @@ class UserMovie {
       'isWatched': isWatched,
       'isWishlist': isWishlist,
       'userRating': userRating,
+      'watchedEpisodes': watchedEpisodes,
+      'lastWatchedSeason': lastWatchedSeason,
+      'lastWatchedEpisode': lastWatchedEpisode,
     };
   }
 
@@ -83,6 +125,12 @@ class UserMovie {
       isWatched: json['isWatched'] ?? false,
       isWishlist: json['isWishlist'] ?? false,
       userRating: json['userRating'],
+      watchedEpisodes: (json['watchedEpisodes'] as List<dynamic>?)
+              ?.map((item) => item.toString())
+              .toList() ??
+          const [],
+      lastWatchedSeason: json['lastWatchedSeason'],
+      lastWatchedEpisode: json['lastWatchedEpisode'],
     );
   }
 }

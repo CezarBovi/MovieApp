@@ -44,6 +44,23 @@ class _WishlistScreenState extends State<WishlistScreen> {
   /// Marca a obra como assistida e a remove
   /// da lista de desejos.
   Future<void> _markWatched(UserMovie movie) async {
+    if (movie.isSeries) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Abra a série e marque os episódios assistidos.',
+          ),
+        ),
+      );
+
+      await _openDetails(movie);
+      return;
+    }
+
     await CollectionService.saveMovie(
       movie.copyWith(isWatched: true, isWishlist: false),
     );

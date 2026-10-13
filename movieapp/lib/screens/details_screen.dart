@@ -7,6 +7,7 @@ import '../services/collection_service.dart';
 import '../services/omdb_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_controller.dart';
+import '../widgets/series_episodes_panel.dart';
 
 /// Tela responsável por exibir os detalhes completos de uma obra.
 ///
@@ -213,11 +214,23 @@ class _MovieDetailsContentState extends State<_MovieDetailsContent> {
   Future<void> _setRating(int rating) async {
     final current = _userMovie;
 
-    if (current == null || !current.isWatched) {
+    if (current == null || !_canRate(current)) {
       return;
     }
 
     await _save(current.copyWith(userRating: rating));
+  }
+
+  bool _canRate(UserMovie movie) {
+    if (movie.isSeries) {
+      return movie.hasEpisodeProgress;
+    }
+
+    return movie.isWatched;
+  }
+
+  int _totalSeasons(MovieDetails details) {
+    return int.tryParse(details.totalSeasons ?? '') ?? 0;
   }
 
   @override
@@ -446,7 +459,7 @@ class _MovieDetailsContentState extends State<_MovieDetailsContent> {
                     child: CircularProgressIndicator(),
                   ),
                 )
-              else if (_userMovie != null)
+              else if (_userMovie != null) ...[
                 _CollectionCard(
                   userMovie: _userMovie!,
                   onFavorite: _toggleFavorite,
@@ -454,6 +467,21 @@ class _MovieDetailsContentState extends State<_MovieDetailsContent> {
                   onWishlist: _toggleWishlist,
                   onRatingSelected: _setRating,
                 ),
+                if (movie.type == 'series' && _totalSeasons(movie) > 0) ...[
+                  const SizedBox(height: 14),
+                  SeriesEpisodesPanel(
+                    imdbId: movie.imdbId,
+                    seriesTitle: movie.title,
+                    seriesPoster: movie.poster,
+                    seriesYear: movie.year,
+                    seriesImdbRating: movie.imdbRating,
+                    totalSeasons: _totalSeasons(movie),
+                    userMovie: _userMovie!,
+                    onSave: _save,
+                    onRefreshCollection: _loadCollection,
+                  ),
+                ],
+              ],
             ],
           ),
         ),
@@ -595,6 +623,14 @@ class _CollectionCard extends StatelessWidget {
     required this.onRatingSelected,
   });
 
+  bool get _canRate {
+    if (userMovie.isSeries) {
+      return userMovie.hasEpisodeProgress;
+    }
+
+    return userMovie.isWatched;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -614,17 +650,20 @@ class _CollectionCard extends StatelessWidget {
               onPressed: onFavorite,
             ),
 
-            const Divider(height: 22),
+            if (!userMovie.isSeries) ...[
+              const Divider(height: 22),
 
-            _CollectionRow(
-              icon: userMovie.isWatched
-                  ? Icons.check_circle
-                  : Icons.check_circle_outline,
-              title: userMovie.isWatched ? 'Já assisti' : 'Ainda não assisti',
-              buttonText: userMovie.isWatched ? 'Desmarcar' : 'Marcar',
-              active: userMovie.isWatched,
-              onPressed: onWatched,
-            ),
+              _CollectionRow(
+                icon: userMovie.isWatched
+                    ? Icons.check_circle
+                    : Icons.check_circle_outline,
+                title:
+                    userMovie.isWatched ? 'Já assisti' : 'Ainda não assisti',
+                buttonText: userMovie.isWatched ? 'Desmarcar' : 'Marcar',
+                active: userMovie.isWatched,
+                onPressed: onWatched,
+              ),
+            ],
 
             const Divider(height: 22),
 
@@ -640,7 +679,7 @@ class _CollectionCard extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            if (userMovie.isWatched)
+            if (_canRate)
               Row(
                 children: [
                   Expanded(
@@ -688,7 +727,9 @@ class _CollectionCard extends StatelessWidget {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Marque como assistido para dar uma nota.',
+                  userMovie.isSeries
+                      ? 'Marque episódios assistidos para dar uma nota.'
+                      : 'Marque como assistido para dar uma nota.',
                   style: theme.textTheme.bodySmall,
                 ),
               ),
@@ -706,7 +747,8 @@ class _CollectionCard extends StatelessWidget {
                   ? 'Já assistido'
                   : 'Adicionar',
               active: userMovie.isWishlist,
-              enabled: userMovie.isWishlist || !userMovie.isWatched,
+              enabled: userMovie.isWishlist ||
+                  (!userMovie.isWatched && !userMovie.hasEpisodeProgress),
               onPressed: onWishlist,
             ),
           ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'screens/main_navigation_screen.dart';
+import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
 
@@ -37,7 +37,7 @@ class MovieApp extends StatelessWidget {
           darkTheme: AppTheme.darkTheme,
           themeMode: themeMode,
 
-          home: const MainNavigationScreen(),
+          home: const SplashScreen(),
         );
       },
     );

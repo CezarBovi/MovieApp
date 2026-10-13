@@ -6,6 +6,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/movie_summary.dart';
+import '../models/season_details.dart';
+import 'search_exceptions.dart';
 
 /// Serviço responsável pela comunicação com a OMDb API.
 ///
@@ -56,6 +58,10 @@ class OmdbService {
     if (data['Response'] == 'False') {
       if (data['Error'] == 'Movie not found!') {
         return [];
+      }
+
+      if (data['Error'] == 'Too many results.') {
+        throw const SearchTooBroadException();
       }
 
       throw Exception(
@@ -118,4 +124,42 @@ static Future<MovieDetails> getMovieDetails(String imdbId) async {
 
   return MovieDetails.fromJson(data);
 }
+
+  /// Lista os episódios de uma temporada de série.
+  static Future<SeasonDetails> getSeasonEpisodes(
+    String imdbId,
+    int season,
+  ) async {
+    final apiKey = dotenv.env['OMDB_API_KEY'];
+
+    if (apiKey == null || apiKey.isEmpty) {
+      throw Exception('Chave da OMDb API não configurada.');
+    }
+
+    final uri = Uri.parse(_baseUrl).replace(
+      queryParameters: {
+        'apikey': apiKey,
+        'i': imdbId,
+        'Season': season.toString(),
+      },
+    );
+
+    final response = await http.get(uri);
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Erro ao acessar a OMDb API. Código: ${response.statusCode}',
+      );
+    }
+
+    final Map<String, dynamic> data = jsonDecode(response.body);
+
+    if (data['Response'] == 'False') {
+      throw Exception(
+        data['Error'] ?? 'Não foi possível carregar os episódios.',
+      );
+    }
+
+    return SeasonDetails.fromJson(data);
+  }
 }

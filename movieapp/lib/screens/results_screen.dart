@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/movie_summary.dart';
 import '../services/omdb_service.dart';
+import '../services/search_exceptions.dart';
+import '../theme/app_theme.dart';
 import '../widgets/app_header.dart';
 import 'details_screen.dart';
 
@@ -90,6 +92,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
             // Estado de carregamento.
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
+            }
+
+            // Pesquisa com resultados demais para a OMDb.
+            if (snapshot.hasError &&
+                snapshot.error is SearchTooBroadException) {
+              return _TooBroadResults(query: _query);
             }
 
             // Estado de erro.
@@ -503,6 +511,103 @@ class _EmptyResults extends StatelessWidget {
                 ),
               ),
 
+              const Spacer(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tela apresentada quando a pesquisa retorna resultados demais.
+class _TooBroadResults extends StatelessWidget {
+  final String query;
+
+  const _TooBroadResults({required this.query});
+
+  void _goToSearchHome(BuildContext context) {
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    tooltip: 'Voltar',
+                    onPressed: () {
+                      _goToSearchHome(context);
+                    },
+                    icon: const Icon(Icons.arrow_back),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: AppHeader(subtitle: 'Resultados da pesquisa'),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Text(
+                'Pesquisa: "$query"',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 28),
+              Container(
+                width: 110,
+                height: 110,
+                decoration: BoxDecoration(
+                  color: AppTheme.ratingYellow.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.warning_amber_rounded,
+                  size: 52,
+                  color: AppTheme.ratingYellow,
+                ),
+              ),
+              const SizedBox(height: 28),
+              Text(
+                'Pesquisa muito ampla',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1.05,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Encontramos resultados demais.\n'
+                'Tente pesquisar um título mais específico.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () {
+                    _goToSearchHome(context);
+                  },
+                  child: const Text('Fazer outra pesquisa'),
+                ),
+              ),
               const Spacer(),
             ],
           ),
