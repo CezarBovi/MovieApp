@@ -125,17 +125,25 @@ static Future<MovieDetails> getMovieDetails(String imdbId) async {
   return MovieDetails.fromJson(data);
 }
 
-  /// Lista os episódios de uma temporada de série.
+  /// Lista todos os episódios pertencentes a uma temporada específica de uma série.
+  ///
+  /// [imdbId] é o identificador único da série no IMDb.
+  /// [season] é o número inteiro da temporada desejada (ex: 1, 2, 3).
+  ///
+  /// Retorna um [SeasonDetails] com a lista de episódios da temporada.
+  /// Lança [Exception] se a requisição falhar ou a chave de API não estiver configurada.
   static Future<SeasonDetails> getSeasonEpisodes(
     String imdbId,
     int season,
   ) async {
+    // Obtém a chave de autenticação das variáveis de ambiente (.env)
     final apiKey = dotenv.env['OMDB_API_KEY'];
 
     if (apiKey == null || apiKey.isEmpty) {
       throw Exception('Chave da OMDb API não configurada.');
     }
 
+    // Monta a URI com os parâmetros necessários: chave, ID da série e número da temporada
     final uri = Uri.parse(_baseUrl).replace(
       queryParameters: {
         'apikey': apiKey,
@@ -144,6 +152,7 @@ static Future<MovieDetails> getMovieDetails(String imdbId) async {
       },
     );
 
+    // Executa a requisição HTTP GET
     final response = await http.get(uri);
 
     if (response.statusCode != 200) {
@@ -152,14 +161,17 @@ static Future<MovieDetails> getMovieDetails(String imdbId) async {
       );
     }
 
+    // Decodifica a resposta JSON recebida da API
     final Map<String, dynamic> data = jsonDecode(response.body);
 
+    // Trata mensagens de erro retornadas pela API (Response: "False")
     if (data['Response'] == 'False') {
       throw Exception(
         data['Error'] ?? 'Não foi possível carregar os episódios.',
       );
     }
 
+    // Instancia o objeto SeasonDetails a partir do mapa decodificado
     return SeasonDetails.fromJson(data);
   }
 }

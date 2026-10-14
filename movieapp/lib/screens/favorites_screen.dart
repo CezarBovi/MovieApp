@@ -209,10 +209,13 @@ class _FavoritesContent extends StatelessWidget {
   }
 }
 
-/// Card visual de um filme favorito.
+/// Card visual completo que exibe um filme marcado como favorito pelo usuário.
 class _FavoriteCard extends StatelessWidget {
+  /// Dados do filme salvo localmente.
   final UserMovie movie;
+  /// Ação disparada ao tocar no card (abre detalhes).
   final VoidCallback onTap;
+  /// Ação disparada para remover dos favoritos.
   final VoidCallback onRemove;
 
   const _FavoriteCard({
@@ -230,6 +233,7 @@ class _FavoriteCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Column(
           children: [
+            // Área tocável com pôster, título, ano e status
             InkWell(
               borderRadius: BorderRadius.circular(14),
               onTap: onTap,

@@ -10,10 +10,13 @@ import 'theme/theme_controller.dart';
 /// Antes de iniciar a interface, carrega o arquivo `.env`,
 /// onde está armazenada a chave da OMDb API.
 Future<void> main() async {
+  // Garante que os bindings do Flutter estejam inicializados antes de chamadas assíncronas
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Carrega as variáveis de ambiente do arquivo .env (contém a chave da OMDb API)
   await dotenv.load(fileName: '.env');
 
+  // Inicializa a árvore de widgets da aplicação chamando a classe raiz MovieApp
   runApp(const MovieApp());
 }
 
@@ -26,20 +29,25 @@ class MovieApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Escuta reativamente as alterações de modo de tema (claro/escuro) notificadas pelo themeController
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeController,
       builder: (context, themeMode, child) {
+        // Configura as opções globais do app (título, rotas, tema e tela inicial)
         return MaterialApp(
           title: 'MovieApp',
+          // Oculta a faixa de 'DEBUG' no canto superior direito
           debugShowCheckedModeBanner: false,
 
+          // Configurações de tema visual claro e escuro definidos na classe AppTheme
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeMode,
 
+          // Tela de abertura (Splash) apresentada inicialmente ao abrir o app
           home: const SplashScreen(),
         );
       },
     );
   }
-}
+}

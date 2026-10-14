@@ -6,28 +6,29 @@ import 'package:flutter/material.dart';
 /// utilizando azul como cor principal, roxo como apoio
 /// e variações específicas para os temas claro e escuro.
 class AppTheme {
-  // Cores principais do projeto.
-  static const Color primaryBlue = Color(0xFF3B82F6);
-  static const Color secondaryPurple = Color(0xFF8B5CF6);
-  static const Color ratingYellow = Color(0xFFF5C451);
+  // Cores principais do projeto (identidade visual).
+  static const Color primaryBlue = Color(0xFF3B82F6); // Cor de destaque principal (botões, títulos)
+  static const Color secondaryPurple = Color(0xFF8B5CF6); // Cor secundária para badges e complementos
+  static const Color ratingYellow = Color(0xFFF5C451); // Cor dourada/amarela para notas de avaliação e estrelas
 
-  // Tema escuro.
-  static const Color darkBackground = Color(0xFF08111F);
-  static const Color darkSurface = Color(0xFF111B2A);
-  static const Color darkSurfaceSecondary = Color(0xFF172235);
-  static const Color darkBorder = Color(0xFF26344A);
+  // Cores para a paleta do Tema Escuro.
+  static const Color darkBackground = Color(0xFF08111F); // Fundo principal da aplicação no modo escuro
+  static const Color darkSurface = Color(0xFF111B2A); // Superfície de cards, campos e modais no modo escuro
+  static const Color darkSurfaceSecondary = Color(0xFF172235); // Superfície com leve contraste para containers
+  static const Color darkBorder = Color(0xFF26344A); // Bordas e divisores sutis no modo escuro
 
-  // Tema claro.
-  static const Color lightBackground = Color(0xFFF5F7FC);
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceSecondary = Color(0xFFF0F3F9);
-  static const Color lightBorder = Color(0xFFDDE3ED);
+  // Cores para a paleta do Tema Claro.
+  static const Color lightBackground = Color(0xFFF5F7FC); // Fundo principal da aplicação no modo claro
+  static const Color lightSurface = Color(0xFFFFFFFF); // Superfície branca para cards e elementos principais
+  static const Color lightSurfaceSecondary = Color(0xFFF0F3F9); // Superfície cinza clara de apoio
+  static const Color lightBorder = Color(0xFFDDE3ED); // Bordas e divisores sutis no modo claro
 
-  /// Tema claro do aplicativo.
+  /// Tema claro do aplicativo com estilização Material 3.
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
 
+    // Esquema de cores semântico para o tema claro
     colorScheme: ColorScheme.fromSeed(
       seedColor: primaryBlue,
       brightness: Brightness.light,
@@ -40,8 +41,10 @@ class AppTheme {
       outlineVariant: lightBorder,
     ),
 
+    // Cor de fundo padrão dos Scaffolds
     scaffoldBackgroundColor: lightBackground,
 
+    // Estilo da barra superior (AppBar)
     appBarTheme: const AppBarTheme(
       backgroundColor: lightBackground,
       foregroundColor: Color(0xFF111827),
@@ -49,6 +52,7 @@ class AppTheme {
       scrolledUnderElevation: 0,
     ),
 
+    // Estilo padrão dos Cards (cantos arredondados, sem sombra pesada e com borda sutil)
     cardTheme: CardThemeData(
       elevation: 0,
       margin: EdgeInsets.zero,
@@ -61,6 +65,7 @@ class AppTheme {
       ),
     ),
 
+    // Estilização dos campos de texto (TextField/TextFormField)
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: lightSurface,
@@ -92,11 +97,13 @@ class AppTheme {
       ),
     ),
 
+    // Estilização da barra de navegação inferior (NavigationBar)
     navigationBarTheme: NavigationBarThemeData(
       height: 72,
       elevation: 0,
       backgroundColor: lightSurface,
       indicatorColor: const Color(0xFFDCEAFF),
+      // Cores dos ícones baseadas no estado (selecionado vs não selecionado)
       iconTheme: WidgetStateProperty.resolveWith(
         (states) {
           if (states.contains(WidgetState.selected)) {
@@ -110,6 +117,7 @@ class AppTheme {
           );
         },
       ),
+      // Estilo do texto dos rótulos baseado no estado
       labelTextStyle: WidgetStateProperty.resolveWith(
         (states) {
           if (states.contains(WidgetState.selected)) {
@@ -128,6 +136,7 @@ class AppTheme {
       ),
     ),
 
+    // Estilo dos botões preenchidos principais (FilledButton)
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: primaryBlue,
@@ -142,6 +151,7 @@ class AppTheme {
       ),
     ),
 
+    // Estilo visual dos Chips e tags de categorias
     chipTheme: ChipThemeData(
       backgroundColor: const Color(0xFFF0ECFF),
       selectedColor: const Color(0xFFE6DEFF),
@@ -156,14 +166,16 @@ class AppTheme {
       ),
     ),
 
+    // Cor das linhas divisórias
     dividerColor: lightBorder,
   );
 
-  /// Tema escuro do aplicativo.
+  /// Tema escuro do aplicativo com estilização Material 3.
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
 
+    // Esquema de cores semântico para o tema escuro
     colorScheme: ColorScheme.fromSeed(
       seedColor: primaryBlue,
       brightness: Brightness.dark,
@@ -176,8 +188,10 @@ class AppTheme {
       outlineVariant: darkBorder,
     ),
 
+    // Cor de fundo dos Scaffolds no tema escuro
     scaffoldBackgroundColor: darkBackground,
 
+    // Estilo da barra superior no modo escuro
     appBarTheme: const AppBarTheme(
       backgroundColor: darkBackground,
       foregroundColor: Colors.white,
@@ -185,6 +199,7 @@ class AppTheme {
       scrolledUnderElevation: 0,
     ),
 
+    // Estilo dos Cards no tema escuro
     cardTheme: CardThemeData(
       elevation: 0,
       margin: EdgeInsets.zero,
@@ -197,6 +212,7 @@ class AppTheme {
       ),
     ),
 
+    // Estilo dos campos de entrada de texto no tema escuro
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: darkSurface,
@@ -228,11 +244,13 @@ class AppTheme {
       ),
     ),
 
+    // Estilo da barra de navegação inferior no tema escuro
     navigationBarTheme: NavigationBarThemeData(
       height: 72,
       elevation: 0,
       backgroundColor: const Color(0xFF0D1725),
       indicatorColor: const Color(0xFF172E61),
+      // Cores dos ícones baseadas no estado
       iconTheme: WidgetStateProperty.resolveWith(
         (states) {
           if (states.contains(WidgetState.selected)) {
@@ -246,6 +264,7 @@ class AppTheme {
           );
         },
       ),
+      // Estilo do texto dos rótulos baseado no estado
       labelTextStyle: WidgetStateProperty.resolveWith(
         (states) {
           if (states.contains(WidgetState.selected)) {
@@ -264,6 +283,7 @@ class AppTheme {
       ),
     ),
 
+    // Estilo dos botões preenchidos no tema escuro
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: primaryBlue,
@@ -278,6 +298,7 @@ class AppTheme {
       ),
     ),
 
+    // Estilo visual dos Chips no tema escuro
     chipTheme: ChipThemeData(
       backgroundColor: const Color(0xFF201A3B),
       selectedColor: const Color(0xFF30255C),
@@ -292,6 +313,8 @@ class AppTheme {
       ),
     ),
 
+    // Cor das linhas divisórias no tema escuro
     dividerColor: darkBorder,
   );
+
 }

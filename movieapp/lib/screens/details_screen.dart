@@ -221,6 +221,9 @@ class _MovieDetailsContentState extends State<_MovieDetailsContent> {
     await _save(current.copyWith(userRating: rating));
   }
 
+  /// Regra de negócio para avaliação pessoal:
+  /// - Para séries: exige que ao menos um episódio tenha sido marcado como assistido.
+  /// - Para filmes: exige que a obra tenha sido marcada como assistida.
   bool _canRate(UserMovie movie) {
     if (movie.isSeries) {
       return movie.hasEpisodeProgress;
@@ -229,6 +232,7 @@ class _MovieDetailsContentState extends State<_MovieDetailsContent> {
     return movie.isWatched;
   }
 
+  /// Converte a quantidade de temporadas da série para número inteiro (retorna 0 se inválido ou inexistente).
   int _totalSeasons(MovieDetails details) {
     return int.tryParse(details.totalSeasons ?? '') ?? 0;
   }

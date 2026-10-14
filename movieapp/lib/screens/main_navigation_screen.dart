@@ -35,7 +35,7 @@ class _MainNavigationScreenState
     WishlistScreen(),
   ];
 
-  /// Atualiza a opção selecionada na barra inferior.
+  /// Atualiza o índice da opção selecionada na barra inferior e reconstrói o Scaffold.
   void _changeScreen(int index) {
     setState(() {
       _selectedIndex = index;
@@ -45,12 +45,15 @@ class _MainNavigationScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    body: _screens[_selectedIndex],
+      // Exibe a tela correspondente ao índice ativo
+      body: _screens[_selectedIndex],
 
+      // Barra de navegação inferior padrão Material 3
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _changeScreen,
         destinations: const [
+          // Aba 1: Pesquisa de filmes e séries
           NavigationDestination(
             icon: Icon(
               Icons.search_outlined,
@@ -61,6 +64,7 @@ class _MainNavigationScreenState
             label: 'Pesquisa',
           ),
 
+          // Aba 2: Lista de filmes favoritos
           NavigationDestination(
             icon: Icon(
               Icons.favorite_border,
@@ -71,6 +75,7 @@ class _MainNavigationScreenState
             label: 'Favoritos',
           ),
 
+          // Aba 3: Histórico de filmes e séries já assistidos
           NavigationDestination(
             icon: Icon(
               Icons.check_circle_outline,
@@ -81,6 +86,7 @@ class _MainNavigationScreenState
             label: 'Já assistidos',
           ),
 
+          // Aba 4: Lista de desejos (quero assistir)
           NavigationDestination(
             icon: Icon(
               Icons.bookmark_border,

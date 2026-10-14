@@ -97,9 +97,13 @@ class _WatchedScreenState extends State<WatchedScreen> {
   }
 }
 
+/// Conteúdo exibido quando existem filmes ou séries assistidos na lista.
 class _WatchedContent extends StatelessWidget {
+  /// Lista dos filmes/séries assistidos pelo usuário.
   final List<UserMovie> movies;
+  /// Callback para navegação para a tela de detalhes.
   final Future<void> Function(UserMovie) onOpenDetails;
+  /// Callback para desmarcar o filme/série como assistido.
   final Future<void> Function(UserMovie) onRemove;
 
   const _WatchedContent({
@@ -125,12 +129,14 @@ class _WatchedContent extends StatelessWidget {
             32,
           ),
           children: [
+            // Cabeçalho da aplicação
             const AppHeader(
               subtitle: 'MINHAS LISTAS',
             ),
 
             const SizedBox(height: 34),
 
+            // Título da seção e badge com a quantidade de obras
             Row(
               children: [
                 Expanded(
@@ -151,6 +157,7 @@ class _WatchedContent extends StatelessWidget {
 
             const SizedBox(height: 8),
 
+            // Texto descritivo auxiliar
             Text(
               'Seu histórico de cinema, com a sua opinião '
               'em notas de 1 a 10.',
@@ -161,6 +168,7 @@ class _WatchedContent extends StatelessWidget {
 
             const SizedBox(height: 24),
 
+            // Lista de cartões para cada obra assistida
             ...movies.map(
               (movie) => Padding(
                 padding:
@@ -179,6 +187,7 @@ class _WatchedContent extends StatelessWidget {
 
             const SizedBox(height: 6),
 
+            // Nota informativa sobre as avaliações
             Row(
               children: [
                 Icon(
@@ -207,9 +216,13 @@ class _WatchedContent extends StatelessWidget {
   }
 }
 
+/// Card que exibe os dados de uma obra assistida (pôster, título, progresso de episódios e notas).
 class _WatchedCard extends StatelessWidget {
+  /// Dados pessoais da obra salvos localmente.
   final UserMovie movie;
+  /// Callback ao clicar no card para abrir detalhes.
   final VoidCallback onTap;
+  /// Callback para remover o status de assistido.
   final VoidCallback onRemove;
 
   const _WatchedCard({
@@ -269,11 +282,18 @@ class _WatchedCard extends StatelessWidget {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 5),
-                            Text(
-                              _watchedStatus(movie),
-                              style: TextStyle(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.w600,
+                            // O widget Expanded abaixo soluciona o erro "right overflowed by 14 pixels",
+                            // garantindo que o texto descritivo do progresso da série ("X ep. · Temporada Y · Episódio Z")
+                            // respeite a largura disponível na tela do celular sem estourar o layout.
+                            Expanded(
+                              child: Text(
+                                _watchedStatus(movie),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
@@ -290,6 +310,7 @@ class _WatchedCard extends StatelessWidget {
 
             const SizedBox(height: 14),
 
+            // Linha com caixas comparativas da Nota IMDb vs Minha Nota
             Row(
               children: [
                 Expanded(
@@ -318,6 +339,7 @@ class _WatchedCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
+            // Botão para desmarcar o filme ou série como assistido
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -337,6 +359,7 @@ class _WatchedCard extends StatelessWidget {
   }
 }
 
+/// Widget apresentado quando ainda não há filmes ou séries marcados como assistidos.
 class _EmptyWatched extends StatelessWidget {
   const _EmptyWatched();
 
@@ -350,6 +373,7 @@ class _EmptyWatched extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Ícone grande indicando lista vazia
             Icon(
               Icons.check_circle_outline,
               size: 64,
@@ -378,6 +402,7 @@ class _EmptyWatched extends StatelessWidget {
   }
 }
 
+/// Badge que exibe o contador de itens assistidos com pluralização correta.
 class _CounterBadge extends StatelessWidget {
   final int count;
 
@@ -410,9 +435,13 @@ class _CounterBadge extends StatelessWidget {
   }
 }
 
+/// Caixa retangular estilizada para exibir títulos e valores de notas de avaliação.
 class _RatingBox extends StatelessWidget {
+  /// Rótulo superior (ex: "Nota IMDb", "Minha nota").
   final String title;
+  /// Valor formatado da avaliação (ex: "8.5/10", "Ainda sem nota").
   final String value;
+  /// Cor temática do texto da nota.
   final Color color;
 
   const _RatingBox({
@@ -437,6 +466,8 @@ class _RatingBox extends StatelessWidget {
           Text(
             title,
             style: theme.textTheme.labelSmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
@@ -445,6 +476,8 @@ class _RatingBox extends StatelessWidget {
               color: color,
               fontWeight: FontWeight.bold,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -452,6 +485,7 @@ class _RatingBox extends StatelessWidget {
   }
 }
 
+/// Componente para renderização do pôster com suporte a imagem de rede e fallback para ícone.
 class _Poster extends StatelessWidget {
   final String poster;
 
@@ -461,6 +495,7 @@ class _Poster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Se não houver pôster cadastrado ou o valor for "N/A", exibe um placeholder com ícone
     if (poster.isEmpty || poster == 'N/A') {
       return const SizedBox(
         width: 84,
@@ -472,6 +507,7 @@ class _Poster extends StatelessWidget {
       );
     }
 
+    // Exibe a imagem remota com cantos arredondados
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Image.network(
@@ -484,6 +520,7 @@ class _Poster extends StatelessWidget {
   }
 }
 
+/// Converte o tipo da obra em inglês ("movie", "series", "episode") para o texto em português.
 String _formatType(String type) {
   switch (type) {
     case 'movie':
@@ -497,12 +534,16 @@ String _formatType(String type) {
   }
 }
 
+/// Trata e formata a exibição da nota, retornando 'Sem nota' quando ausente ou "N/A".
 String _displayRating(String rating) {
   return rating.isEmpty || rating == 'N/A'
       ? 'Sem nota'
       : rating;
 }
 
+/// Monta a legenda do status assistido:
+/// - Para séries: inclui o total de episódios e o ponto de retomada (ex: "5 ep. · Temporada 1 · Episódio 5").
+/// - Para filmes: exibe "Assistido".
 String _watchedStatus(UserMovie movie) {
   if (movie.isSeries) {
     if (movie.continueWatchingLabel != null) {

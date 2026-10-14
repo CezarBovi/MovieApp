@@ -201,7 +201,7 @@ class _ResultsContent extends StatelessWidget {
 
                   const SizedBox(height: 22),
 
-                  // Título e quantidade de resultados.
+                  // Linha com o título da busca e badge informando o total de itens encontrados
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -215,6 +215,7 @@ class _ResultsContent extends StatelessWidget {
                         ),
                       ),
 
+                      // Badge arredondado com a contagem de resultados
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
@@ -239,7 +240,7 @@ class _ResultsContent extends StatelessWidget {
 
                   const SizedBox(height: 18),
 
-                  // Cards dos resultados.
+                  // Mapeia e renderiza a lista de filmes retornados
                   ...movies.map(
                     (movie) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -261,12 +262,15 @@ class _ResultsContent extends StatelessWidget {
   }
 }
 
-/// Card utilizado para representar um resultado da OMDb.
+/// Card de exibição resumida de um filme ou série retornado pela pesquisa.
 class _MovieResultCard extends StatelessWidget {
+  /// Dados simplificados da obra (título, ano, tipo e pôster).
   final MovieSummary movie;
+  /// Callback de clique para abrir os detalhes completos.
   final VoidCallback onTap;
 
   const _MovieResultCard({required this.movie, required this.onTap});
+
 
   @override
   Widget build(BuildContext context) {

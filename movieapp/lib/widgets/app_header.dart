@@ -17,15 +17,18 @@ class AppHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Obtém o tema atual do contexto para tipografia e esquema de cores
     final theme = Theme.of(context);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // Coluna com a logo e título ocupando o espaço disponível à esquerda
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Linha contendo a logo arredondada e o nome da aplicação
               Row(
                 children: [
                   ClipRRect(
@@ -48,6 +51,7 @@ class AppHeader extends StatelessWidget {
                 ],
               ),
 
+              // Subtítulo descritivo exibido caso tenha sido fornecido
               if (subtitle != null) ...[
                 const SizedBox(height: 3),
 
@@ -62,6 +66,7 @@ class AppHeader extends StatelessWidget {
           ),
         ),
 
+        // Botão para alternar entre tema claro e escuro reativamente
         ValueListenableBuilder<ThemeMode>(
           valueListenable: themeController,
           builder: (context, themeMode, child) {

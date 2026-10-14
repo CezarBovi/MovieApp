@@ -11,12 +11,14 @@ class Rating {
   /// Valor da avaliação.
   final String value;
 
+  /// Cria uma instância da avaliação com a fonte e o valor.
   Rating({
     required this.source,
     required this.value,
   });
 
-  /// Cria um objeto [Rating] a partir do JSON retornado pela OMDb.
+  /// Construtor de fábrica que cria um objeto [Rating] a partir do mapa JSON retornado pela OMDb API.
+  /// Trata valores ausentes atribuindo uma string vazia como fallback.
   factory Rating.fromJson(Map<String, dynamic> json) {
     return Rating(
       source: json['Source'] ?? '',

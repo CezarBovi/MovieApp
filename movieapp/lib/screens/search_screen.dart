@@ -197,11 +197,11 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-/// Cartão utilizado para representar o destaque da página inicial.
+/// Cartão interativo que exibe o filme em destaque na página inicial.
 ///
-/// Nesta etapa o destaque é fixo.
-/// Ele apenas serve como atalho para pesquisar a obra.
+/// Ao tocar no cartão, preenche e executa automaticamente a pesquisa da obra.
 class _FeaturedMovieCard extends StatelessWidget {
+  /// Callback disparado ao clicar no card de destaque.
   final VoidCallback onTap;
 
   const _FeaturedMovieCard({
@@ -231,6 +231,7 @@ class _FeaturedMovieCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Badge de identificação do destaque
               Row(
                 children: [
                   Icon(
@@ -254,6 +255,7 @@ class _FeaturedMovieCard extends StatelessWidget {
 
               const SizedBox(height: 24),
 
+              // Título da obra em destaque
               Text(
                 'Dune: Part Two',
                 style: theme.textTheme.headlineSmall?.copyWith(
@@ -264,6 +266,7 @@ class _FeaturedMovieCard extends StatelessWidget {
 
               const SizedBox(height: 7),
 
+              // Metadados básicos (ano, tipo, duração)
               Text(
                 '2024 · Filme · 2h 46m',
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -273,6 +276,7 @@ class _FeaturedMovieCard extends StatelessWidget {
 
               const SizedBox(height: 18),
 
+              // Tags com gêneros da obra
               const Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -292,6 +296,7 @@ class _FeaturedMovieCard extends StatelessWidget {
 
               const SizedBox(height: 12),
 
+              // Ícone indicativo de ação/navegação
               Align(
                 alignment: Alignment.centerRight,
                 child: Icon(
@@ -307,9 +312,11 @@ class _FeaturedMovieCard extends StatelessWidget {
   }
 }
 
-/// Botão reutilizável para pesquisas populares.
+/// Chip de ação interativo para consultas sugeridas (Buscas populares).
 class _PopularSearchChip extends StatelessWidget {
+  /// Nome do termo a ser pesquisado.
   final String title;
+  /// Callback disparado ao clicar no chip.
   final VoidCallback onPressed;
 
   const _PopularSearchChip({
@@ -319,6 +326,7 @@ class _PopularSearchChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ActionChip com ícone de tendência e label interativo
     return ActionChip(
       avatar: const Icon(
         Icons.trending_up,

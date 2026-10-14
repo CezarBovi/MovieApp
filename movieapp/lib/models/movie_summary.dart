@@ -18,6 +18,7 @@ class MovieSummary {
   /// URL do pôster da obra.
   final String poster;
 
+  /// Construtor que inicializa o resumo simplificado da obra pesquisada.
   MovieSummary({
     required this.title,
     required this.year,
@@ -26,7 +27,8 @@ class MovieSummary {
     required this.poster,
   });
 
-  /// Cria um objeto [MovieSummary] a partir do JSON retornado pela OMDb.
+  /// Construtor de fábrica que converte o JSON retornado pela lista de busca da OMDb API.
+  /// Mapeia os campos da API ('Title', 'Year', 'imdbID', 'Type', 'Poster') para as propriedades da classe.
   factory MovieSummary.fromJson(Map<String, dynamic> json) {
     return MovieSummary(
       title: json['Title'] ?? '',

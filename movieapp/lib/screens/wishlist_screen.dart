@@ -195,10 +195,15 @@ class _WishlistContent extends StatelessWidget {
   }
 }
 
+/// Card visual que exibe uma obra adicionada à Lista de Desejos.
 class _WishlistCard extends StatelessWidget {
+  /// Dados pessoais da obra salvos localmente.
   final UserMovie movie;
+  /// Callback disparado ao clicar no card para ver detalhes.
   final VoidCallback onTap;
+  /// Callback disparado ao marcar a obra como assistida.
   final VoidCallback onWatched;
+  /// Callback disparado para remover a obra da lista de desejos.
   final VoidCallback onRemove;
 
   const _WishlistCard({
@@ -251,11 +256,13 @@ class _WishlistCard extends StatelessWidget {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 5),
-                            Text(
-                              'Quero assistir',
-                              style: TextStyle(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Text(
+                                'Quero assistir',
+                                style: TextStyle(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
@@ -270,6 +277,7 @@ class _WishlistCard extends StatelessWidget {
 
             const SizedBox(height: 14),
 
+            // Linha com caixas comparativas da Nota IMDb vs Minha Nota
             Row(
               children: [
                 Expanded(
@@ -296,6 +304,7 @@ class _WishlistCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
+            // Ações: Botão de marcar como assistido e botão de remover
             Row(
               children: [
                 Expanded(
@@ -391,9 +400,13 @@ class _CounterBadge extends StatelessWidget {
   }
 }
 
+/// Caixa retangular estilizada para exibir títulos e notas de avaliação.
 class _RatingBox extends StatelessWidget {
+  /// Rótulo superior da avaliação.
   final String title;
+  /// Valor formatado da avaliação.
   final String value;
+  /// Cor temática do texto da nota.
   final Color color;
 
   const _RatingBox({
@@ -415,7 +428,12 @@ class _RatingBox extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: theme.textTheme.labelSmall),
+          Text(
+            title,
+            style: theme.textTheme.labelSmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           const SizedBox(height: 4),
           Text(
             value,
@@ -423,6 +441,8 @@ class _RatingBox extends StatelessWidget {
               color: color,
               fontWeight: FontWeight.bold,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -430,6 +450,7 @@ class _RatingBox extends StatelessWidget {
   }
 }
 
+/// Exibe o pôster da obra ou um ícone substituto caso a imagem não exista.
 class _Poster extends StatelessWidget {
   final String poster;
 
@@ -452,6 +473,7 @@ class _Poster extends StatelessWidget {
   }
 }
 
+/// Traduz o tipo da obra ("movie", "series", "episode") para português.
 String _formatType(String type) {
   switch (type) {
     case 'movie':
@@ -465,6 +487,8 @@ String _formatType(String type) {
   }
 }
 
+/// Trata valores vazios ou "N/A" retornando 'Sem nota'.
 String _displayRating(String rating) {
   return rating.isEmpty || rating == 'N/A' ? 'Sem nota' : rating;
 }
+

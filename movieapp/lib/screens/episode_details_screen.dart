@@ -37,17 +37,23 @@ class EpisodeDetailsScreen extends StatefulWidget {
 }
 
 class _EpisodeDetailsScreenState extends State<EpisodeDetailsScreen> {
+  // Future que busca os detalhes específicos do episódio via OMDb API
   late Future<MovieDetails> _episodeFuture;
+  // Objeto UserMovie da série correspondente para verificar e alterar progresso
   UserMovie? _seriesMovie;
+  // Flag de carregamento dos dados da coleção local
   bool _loadingCollection = true;
 
   @override
   void initState() {
     super.initState();
+    // Inicia a requisição da OMDb para o episódio
     _episodeFuture = OmdbService.getMovieDetails(widget.episodeImdbId);
+    // Carrega o registro local da série para conferir se este episódio já foi assistido
     _loadSeriesCollection();
   }
 
+  /// Carrega os dados da série armazenados no SharedPreferences local.
   Future<void> _loadSeriesCollection() async {
     final saved = await CollectionService.getMovie(widget.seriesImdbId);
 
@@ -70,6 +76,7 @@ class _EpisodeDetailsScreenState extends State<EpisodeDetailsScreen> {
     });
   }
 
+  /// Recalcula a última temporada e episódio assistidos com base na lista de episódios concluídos.
   UserMovie _withSyncedProgress(UserMovie movie) {
     if (movie.watchedEpisodes.isEmpty) {
       return movie.copyWith(isWatched: false, clearLastWatched: true);
@@ -101,6 +108,7 @@ class _EpisodeDetailsScreenState extends State<EpisodeDetailsScreen> {
     );
   }
 
+  /// Alterna o estado de assistido deste episódio específico e sincroniza na série salva.
   Future<void> _toggleEpisodeWatched() async {
     final current = _seriesMovie;
     if (current == null) {
@@ -137,6 +145,7 @@ class _EpisodeDetailsScreenState extends State<EpisodeDetailsScreen> {
     });
   }
 
+  /// Abre a tela com os detalhes completos da série à qual este episódio pertence.
   void _openSeries() {
     Navigator.push(
       context,

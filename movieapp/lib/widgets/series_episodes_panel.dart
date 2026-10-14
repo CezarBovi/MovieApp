@@ -37,23 +37,30 @@ class SeriesEpisodesPanel extends StatefulWidget {
 }
 
 class _SeriesEpisodesPanelState extends State<SeriesEpisodesPanel> {
+  // Temporada atualmente selecionada pelo usuário no dropdown (padrão: 1)
   int _selectedSeason = 1;
+  // Detalhes da temporada carregados da OMDb API
   SeasonDetails? _seasonDetails;
+  // Flag que indica carregamento assíncrono dos episódios
   bool _loadingSeason = false;
+  // Mensagem de erro caso a requisição falhe
   String? _seasonError;
 
   @override
   void initState() {
     super.initState();
+    // Se o usuário já assistiu a algum episódio antes, abre diretamente na temporada do último episódio
     if (widget.userMovie.lastWatchedSeason != null) {
       _selectedSeason = widget.userMovie.lastWatchedSeason!.clamp(
         1,
         widget.totalSeasons,
       );
     }
+    // Carrega a lista de episódios da temporada inicial
     _loadSeason(_selectedSeason);
   }
 
+  /// Busca os episódios da temporada indicada utilizando o OmdbService.
   Future<void> _loadSeason(int season) async {
     setState(() {
       _loadingSeason = true;
@@ -87,6 +94,7 @@ class _SeriesEpisodesPanelState extends State<SeriesEpisodesPanel> {
     }
   }
 
+  /// Recalcula e sincroniza o último episódio e temporada assistidos a partir da lista de episódios salvos.
   UserMovie _withSyncedProgress(UserMovie movie) {
     if (movie.watchedEpisodes.isEmpty) {
       return movie.copyWith(
@@ -98,6 +106,7 @@ class _SeriesEpisodesPanelState extends State<SeriesEpisodesPanel> {
     var bestSeason = 0;
     var bestEpisode = 0;
 
+    // Percorre todos os episódios no formato "temporada:episodio" procurando o maior ponto alcançado
     for (final key in movie.watchedEpisodes) {
       final parts = key.split(':');
       if (parts.length != 2) {
@@ -121,6 +130,7 @@ class _SeriesEpisodesPanelState extends State<SeriesEpisodesPanel> {
     );
   }
 
+  /// Alterna o status de assistido de um episódio individual e persiste na coleção.
   Future<void> _toggleEpisode(int season, int episode) async {
     final key = UserMovie.episodeKey(season, episode);
     final watched = List<String>.from(widget.userMovie.watchedEpisodes);
@@ -132,16 +142,20 @@ class _SeriesEpisodesPanelState extends State<SeriesEpisodesPanel> {
       watched.remove(key);
     }
 
+    // Se estiver marcando um episódio como assistido, remove da lista de desejos
     var updated = widget.userMovie.copyWith(
       watchedEpisodes: watched,
       isWishlist: marking ? false : widget.userMovie.isWishlist,
     );
 
+    // Sincroniza o ponto onde o usuário parou
     updated = _withSyncedProgress(updated);
 
+    // Salva as alterações através do callback fornecido pelo widget pai
     await widget.onSave(updated);
   }
 
+  /// Abre a tela com sinopse e detalhes completos do episódio selecionado.
   Future<void> _openEpisodeDetails(
     EpisodeSummary episode,
     int episodeNumber,
@@ -168,6 +182,7 @@ class _SeriesEpisodesPanelState extends State<SeriesEpisodesPanel> {
       ),
     );
 
+    // Atualiza a tela de detalhes ao retornar da tela de episódio
     await widget.onRefreshCollection?.call();
   }
 
