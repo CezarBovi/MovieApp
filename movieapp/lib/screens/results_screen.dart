@@ -188,6 +188,7 @@ class _ResultsContent extends StatelessWidget {
                     textInputAction: TextInputAction.search,
                     onSubmitted: onSearchSubmitted,
                     decoration: InputDecoration(
+                      hintText: 'Título ou IMDb ID (ex.: tt0133093)...',
                       prefixIcon: Icon(Icons.search),
                       suffixIcon: IconButton(
                         tooltip: 'Pesquisar',
@@ -266,6 +267,7 @@ class _ResultsContent extends StatelessWidget {
 class _MovieResultCard extends StatelessWidget {
   /// Dados simplificados da obra (título, ano, tipo e pôster).
   final MovieSummary movie;
+
   /// Callback de clique para abrir os detalhes completos.
   final VoidCallback onTap;
 

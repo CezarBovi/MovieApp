@@ -116,7 +116,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   },
                   textInputAction: TextInputAction.search,
                   decoration: const InputDecoration(
-                    hintText: 'Pesquisar filmes ou séries...',
+                    hintText: 'Título ou IMDb ID (ex.: tt0133093)...',
                     prefixIcon: Icon(Icons.search),
                   ),
                 ),

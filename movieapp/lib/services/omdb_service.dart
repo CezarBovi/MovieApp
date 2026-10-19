@@ -27,6 +27,22 @@ class OmdbService {
   /// Pode lançar uma [Exception] caso ocorra um erro de conexão,
   /// configuração ou resposta da API.
   static Future<List<MovieSummary>> searchMovies(String query) async {
+    final trimmedQuery = query.trim();
+
+    if (RegExp(r'^tt\d{7,10}$', caseSensitive: false)
+        .hasMatch(trimmedQuery)) {
+      final details = await getMovieDetails(trimmedQuery.toLowerCase());
+      return [
+        MovieSummary(
+          title: details.title,
+          year: details.year,
+          imdbId: details.imdbId,
+          type: details.type,
+          poster: details.poster,
+        ),
+      ];
+    }
+
     final apiKey = dotenv.env['OMDB_API_KEY'];
 
     // Verifica se a chave da API foi configurada no arquivo .env.
@@ -39,7 +55,7 @@ class OmdbService {
     final uri = Uri.parse(_baseUrl).replace(
       queryParameters: {
         'apikey': apiKey,
-        's': query,
+        's': trimmedQuery,
       },
     );
 
