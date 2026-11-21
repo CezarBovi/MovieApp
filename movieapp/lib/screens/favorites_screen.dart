@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_movie.dart';
+import '../repositories/collection_repository_exception.dart';
 import '../services/collection_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_header.dart';
@@ -41,11 +42,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   /// Remove uma obra da lista de favoritos.
   Future<void> _removeFavorite(UserMovie movie) async {
-    await CollectionService.saveMovie(
-      movie.copyWith(
-        isFavorite: false,
-      ),
-    );
+    try {
+      await CollectionService.saveMovie(
+        movie.copyWith(
+          isFavorite: false,
+        ),
+      );
+    } on CollectionNetworkException {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Servidor da coleção offline. Alteração salva localmente.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
 
     _refresh();
   }
@@ -283,13 +295,14 @@ class _FavoriteCard extends StatelessWidget {
                                     theme.colorScheme.primary,
                               ),
                               const SizedBox(width: 5),
-                              Text(
-                                'Assistido',
-                                style: TextStyle(
-                                  color: theme
-                                      .colorScheme.primary,
-                                  fontWeight:
-                                      FontWeight.w600,
+                              Expanded(
+                                child: Text(
+                                  'Assistido',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Representa os dados pessoais que o usuário associa a um filme.
 ///
 /// Essas informações não vêm da OMDb. Elas são armazenadas
@@ -62,6 +64,18 @@ class UserMovie {
 
   /// Informa se existe progresso registrado (ao menos um episódio assistido).
   bool get hasEpisodeProgress => watchedEpisodes.isNotEmpty;
+
+  /// Indica se a obra não possui nenhuma interação pessoal registrada (registro vazio).
+  /// Espelha o critério de remoção automática da coleção.
+  bool get isEmpty =>
+      !isFavorite &&
+      !isWatched &&
+      !hasEpisodeProgress &&
+      !isWishlist &&
+      userRating == null;
+
+  /// Indica se a obra possui ao menos uma interação pessoal associada.
+  bool get isNotEmpty => !isEmpty;
 
   /// Gera a chave única de identificação de um episódio no formato "temporada:episodio".
   static String episodeKey(int season, int episode) => '$season:$episode';
@@ -155,4 +169,40 @@ class UserMovie {
       lastWatchedEpisode: json['lastWatchedEpisode'],
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is UserMovie &&
+        other.imdbId == imdbId &&
+        other.title == title &&
+        other.year == year &&
+        other.type == type &&
+        other.poster == poster &&
+        other.imdbRating == imdbRating &&
+        other.isFavorite == isFavorite &&
+        other.isWatched == isWatched &&
+        other.isWishlist == isWishlist &&
+        other.userRating == userRating &&
+        listEquals(other.watchedEpisodes, watchedEpisodes) &&
+        other.lastWatchedSeason == lastWatchedSeason &&
+        other.lastWatchedEpisode == lastWatchedEpisode;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        imdbId,
+        title,
+        year,
+        type,
+        poster,
+        imdbRating,
+        isFavorite,
+        isWatched,
+        isWishlist,
+        userRating,
+        Object.hashAll(watchedEpisodes),
+        lastWatchedSeason,
+        lastWatchedEpisode,
+      );
 }

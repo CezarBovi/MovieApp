@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_movie.dart';
+import '../repositories/collection_repository_exception.dart';
 import '../services/collection_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_header.dart';
@@ -41,14 +42,25 @@ class _WatchedScreenState extends State<WatchedScreen> {
 
   /// Desmarca um filme como assistido.
   Future<void> _removeWatched(UserMovie movie) async {
-    await CollectionService.saveMovie(
-      movie.copyWith(
-        isWatched: false,
-        watchedEpisodes: const [],
-        clearLastWatched: true,
-        removeRating: true,
-      ),
-    );
+    try {
+      await CollectionService.saveMovie(
+        movie.copyWith(
+          isWatched: false,
+          watchedEpisodes: const [],
+          clearLastWatched: true,
+          removeRating: true,
+        ),
+      );
+    } on CollectionNetworkException {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Servidor da coleção offline. Alteração salva localmente.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
 
     _refresh();
   }

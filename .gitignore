@@ -12,3 +12,7 @@ venv/
 
 # Segredos
 .env
+
+# Documentos internos de desenvolvimento da IA
+AI_PROGRESS.md
+

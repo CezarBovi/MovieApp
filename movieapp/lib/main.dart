@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'config/api_config.dart';
 import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
@@ -15,6 +16,9 @@ Future<void> main() async {
 
   // Carrega as variáveis de ambiente do arquivo .env (contém a chave da OMDb API)
   await dotenv.load(fileName: '.env');
+
+  // Inicializa as configurações da API da coleção a partir do ambiente, se houver
+  ApiConfig.configureFromEnv();
 
   // Inicializa a árvore de widgets da aplicação chamando a classe raiz MovieApp
   runApp(const MovieApp());

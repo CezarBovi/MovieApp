@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/movie_details.dart';
 import '../models/rating.dart';
 import '../models/user_movie.dart';
+import '../repositories/collection_repository_exception.dart';
 import '../services/collection_service.dart';
 import '../services/omdb_service.dart';
 import '../theme/app_theme.dart';
@@ -134,7 +135,27 @@ class _EpisodeDetailsScreenState extends State<EpisodeDetailsScreen> {
     );
     updated = _withSyncedProgress(updated);
 
-    await CollectionService.saveMovie(updated);
+    try {
+      await CollectionService.saveMovie(updated);
+    } on CollectionNetworkException {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Servidor da coleção offline. Progresso salvo localmente.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar episódio: $e'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
 
     if (!mounted) {
       return;
