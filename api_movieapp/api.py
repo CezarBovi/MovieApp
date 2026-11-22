@@ -1,8 +1,10 @@
+
 """API REST da coleção pessoal do MovieApp."""
 
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import BadRequest
@@ -22,6 +24,28 @@ def create_app(caminho_colecao: str | Path | None = None) -> Flask:
     app = Flask(__name__)
     arquivo = Path(caminho_colecao) if caminho_colecao else CAMINHO_PADRAO
     app.config["CAMINHO_COLECAO"] = arquivo
+
+    # Permite requisições do Flutter Web executado localmente.
+    @app.after_request
+    def adicionar_cors(resposta):
+        origem = request.headers.get("Origin")
+
+        if origem:
+            partes = urlsplit(origem)
+            host_permitido = partes.hostname in ("localhost", "127.0.0.1")
+
+            if partes.scheme == "http" and host_permitido:
+                resposta.headers["Access-Control-Allow-Origin"] = origem
+                resposta.headers["Vary"] = "Origin"
+                resposta.headers["Access-Control-Allow-Methods"] = (
+                    "GET, PUT, DELETE, OPTIONS"
+                )
+                resposta.headers["Access-Control-Allow-Headers"] = (
+                    "Content-Type, Authorization"
+                )
+                resposta.headers["Access-Control-Max-Age"] = "600"
+
+        return resposta
 
     @app.get("/health")
     def health():
